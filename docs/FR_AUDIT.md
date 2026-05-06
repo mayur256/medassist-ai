@@ -2,8 +2,8 @@
 # MedAssist-CDSS v1.0
 
 **Last Updated:** 2026-05-06  
-**Current Phase:** Phase 2 (AI Services) ✅  
-**Overall Progress:** 11 / 22 FRs implemented
+**Current Phase:** Phase 4 (Orchestration & Testing) ✅  
+**Overall Progress:** 22 / 22 FRs implemented
 
 ---
 
@@ -48,32 +48,32 @@
 
 | FR ID | Requirement | Status | Notes |
 |-------|-------------|--------|-------|
-| FR-DIAG-001 | Generate differential diagnoses only (never final) | ⏳ | Needs diagnosis service |
-| FR-DIAG-002 | Each diagnosis: condition, confidence, reasoning | ⏳ | Needs response model |
-| FR-DIAG-003 | Consider patient demographics and known conditions | ⏳ | Needs prompt context |
+| FR-DIAG-001 | Generate differential diagnoses only (never final) | ✅ | Prompt enforces "differential only", never final |
+| FR-DIAG-002 | Each diagnosis: condition, confidence, reasoning | ✅ | Validated output with clamped confidence 0-1 |
+| FR-DIAG-003 | Consider patient demographics and known conditions | ✅ | Prompt includes age, gender, country, conditions |
 
 ### 4.5 Treatment Suggestion Engine (FR-TREAT)
 
 | FR ID | Requirement | Status | Notes |
 |-------|-------------|--------|-------|
-| FR-TREAT-001 | Suggest non-prescriptive treatment options | ⏳ | Needs treatment service |
-| FR-TREAT-002 | Respect patient allergies and known conditions | ⏳ | Needs allergy filtering |
-| FR-TREAT-003 | MUST NOT generate prescriptions or dosage | ⏳ | Guardrail in prompt + post-processing |
+| FR-TREAT-001 | Suggest non-prescriptive treatment options | ✅ | LLM prompt + dosage regex post-filter |
+| FR-TREAT-002 | Respect patient allergies and known conditions | ✅ | `_filter_allergies()` removes allergy matches |
+| FR-TREAT-003 | MUST NOT generate prescriptions or dosage | ✅ | `_contains_dosage()` regex filter on output |
 
 ### 4.6 Compliance Engine (FR-COMP)
 
 | FR ID | Requirement | Status | Notes |
 |-------|-------------|--------|-------|
-| FR-COMP-001 | Apply country-specific drug restriction rules | ⏳ | Needs compliance service |
-| FR-COMP-002 | Remove restricted/banned substances | ⏳ | Needs drug restriction data |
+| FR-COMP-001 | Apply country-specific drug restriction rules | ✅ | `filter_restricted_drugs()` for India/US/UK |
+| FR-COMP-002 | Remove restricted/banned substances | ✅ | Restricted drug sets per country |
 | FR-COMP-003 | Always inject disclaimer in output | ✅ | Default value in `DiagnoseResponse.disclaimer` |
 
 ### 4.7 Red Flag Detection (FR-RED)
 
 | FR ID | Requirement | Status | Notes |
 |-------|-------------|--------|-------|
-| FR-RED-001 | Detect emergency symptoms | ⏳ | Needs red flag rules |
-| FR-RED-002 | Flag urgent cases for immediate escalation | ⏳ | Needs escalation logic |
+| FR-RED-001 | Detect emergency symptoms | ✅ | `detect_red_flags()` checks 20 emergency symptoms |
+| FR-RED-002 | Flag urgent cases for immediate escalation | ✅ | Red flags returned in response for escalation |
 
 ### 4.8 Output Format (FR-OUT)
 
@@ -89,8 +89,8 @@
 |-------|-------------|--------|-------|
 | Phase 1 | Foundation | ✅ | Steps 3-5 complete |
 | Phase 2 | AI Services | ✅ | Steps 6-8 complete |
-| Phase 3 | Clinical Logic | ⏳ | Steps 9-11 |
-| Phase 4 | Orchestration & Testing | ⏳ | Steps 12-13 |
+| Phase 3 | Clinical Logic | ✅ | Steps 9-11 complete |
+| Phase 4 | Orchestration & Testing | ✅ | Steps 12-13 complete |
 
 ---
 
@@ -100,17 +100,13 @@
 |------|--------|--------------|
 | 2026-05-05 | Project scaffolding: pyproject.toml, config, directory structure | — (infrastructure only) |
 | 2026-05-06 | Core models (request.py, response.py), FastAPI app (main.py), API key auth, tests passing | FR-INPUT-001, FR-INPUT-002, FR-INPUT-003, FR-COMP-003, FR-OUT-001 |
-| 2026-05-06 | NER service, LLM service, Follow-up engine + 17 tests | FR-NER-001, FR-NER-002, FR-NER-003, FR-FOLLOWUP-001, FR-FOLLOWUP-002, FR-FOLLOWUP-003 |
+| 2026-05-06 | NER service, LLM service (local inference), Follow-up engine + 17 tests | FR-NER-001, FR-NER-002, FR-NER-003, FR-FOLLOWUP-001, FR-FOLLOWUP-002, FR-FOLLOWUP-003 |
+| 2026-05-06 | Diagnosis engine, Treatment engine, Compliance engine + 20 tests | FR-DIAG-001/002/003, FR-TREAT-001/002/003, FR-COMP-001/002, FR-RED-001/002 |
+
+| 2026-05-06 | LangGraph orchestrator (NER→Followup→Diagnosis→Treatment→Compliance), wired to /diagnose, 8 integration tests | All FRs (end-to-end) |
 
 ---
 
-## Next Up
+## ✅ MVP Complete
 
-**Phase 3, Step 9: Diagnosis Engine**
-- `app/services/diagnosis_engine.py` → FR-DIAG-001, FR-DIAG-002, FR-DIAG-003
-
-**Phase 3, Step 10: Treatment Engine**
-- `app/services/treatment_engine.py` → FR-TREAT-001, FR-TREAT-002, FR-TREAT-003
-
-**Phase 3, Step 11: Compliance Engine**
-- `app/services/compliance_engine.py` → FR-COMP-001, FR-COMP-002, FR-RED-001, FR-RED-002
+All 22 functional requirements implemented and verified across 56 tests (4 phases).

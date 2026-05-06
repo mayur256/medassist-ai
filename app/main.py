@@ -27,8 +27,10 @@ def health():
 
 
 @app.post("/diagnose", response_model=DiagnoseResponse)
-def diagnose(
+async def diagnose(
     request: DiagnoseRequest,
     _: str = Depends(verify_api_key),
 ):
-    return DiagnoseResponse()
+    from app.orchestrator.graph import run_pipeline
+
+    return await run_pipeline(request)

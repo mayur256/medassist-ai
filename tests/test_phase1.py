@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -66,7 +68,9 @@ class TestAPI:
         )
         assert r.status_code == 401
 
-    def test_diagnose_valid(self):
+    @patch("app.orchestrator.graph.run_pipeline", new_callable=AsyncMock)
+    def test_diagnose_valid(self, mock_pipeline):
+        mock_pipeline.return_value = DiagnoseResponse()
         r = client.post(
             "/diagnose",
             json={"patient": {"age": 30, "gender": "male", "country": "India"}, "symptoms": "headache"},
