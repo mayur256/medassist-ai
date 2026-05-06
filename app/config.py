@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     app_name: str = "MedAssist-CDSS"
+    api_key: str = ""
     hf_api_token: str = ""
     llm_model: str = "mistralai/Mistral-7B-Instruct-v0.2"
     llm_fallback_model: str = "HuggingFaceH4/zephyr-7b-beta"
