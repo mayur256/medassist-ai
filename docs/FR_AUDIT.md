@@ -2,8 +2,8 @@
 # MedAssist-CDSS v1.0
 
 **Last Updated:** 2026-05-06  
-**Current Phase:** Phase 1 (Foundation) ✅  
-**Overall Progress:** 5 / 22 FRs implemented
+**Current Phase:** Phase 2 (AI Services) ✅  
+**Overall Progress:** 11 / 22 FRs implemented
 
 ---
 
@@ -32,17 +32,17 @@
 
 | FR ID | Requirement | Status | Notes |
 |-------|-------------|--------|-------|
-| FR-NER-001 | Extract symptoms, duration, severity from free text | ⏳ | Needs NER service |
-| FR-NER-002 | Use `d4data/biomedical-ner-all` model | ⏳ | Model configured in settings |
-| FR-NER-003 | Output normalized structured data | ⏳ | Needs response schema |
+| FR-NER-001 | Extract symptoms, duration, severity from free text | ✅ | `ner_service.extract_entities()` with regex fallback |
+| FR-NER-002 | Use `d4data/biomedical-ner-all` model | ✅ | Lazy-loaded pipeline in `ner_service.py` |
+| FR-NER-003 | Output normalized structured data | ✅ | Returns `NERResult` dataclass |
 
 ### 4.3 Follow-Up Question Engine (FR-FOLLOWUP)
 
 | FR ID | Requirement | Status | Notes |
 |-------|-------------|--------|-------|
-| FR-FOLLOWUP-001 | Generate max 3 follow-up questions per iteration | ⏳ | Threshold in config |
-| FR-FOLLOWUP-002 | Questions must be medically relevant and non-repetitive | ⏳ | Needs LLM prompt design |
-| FR-FOLLOWUP-003 | Stop when confidence ≥ 0.7 OR max 2 iterations | ⏳ | Thresholds in config |
+| FR-FOLLOWUP-001 | Generate max 3 follow-up questions per iteration | ✅ | Enforced via `settings.max_followup_questions` slice |
+| FR-FOLLOWUP-002 | Questions must be medically relevant and non-repetitive | ✅ | LLM prompt includes previous questions + relevance rules |
+| FR-FOLLOWUP-003 | Stop when confidence ≥ 0.7 OR max 2 iterations | ✅ | `generate_followup()` checks both conditions |
 
 ### 4.4 Diagnosis Engine (FR-DIAG)
 
@@ -88,7 +88,7 @@
 | Phase | Description | Status | Steps |
 |-------|-------------|--------|-------|
 | Phase 1 | Foundation | ✅ | Steps 3-5 complete |
-| Phase 2 | AI Services | ⏳ | Steps 6-8 |
+| Phase 2 | AI Services | ✅ | Steps 6-8 complete |
 | Phase 3 | Clinical Logic | ⏳ | Steps 9-11 |
 | Phase 4 | Orchestration & Testing | ⏳ | Steps 12-13 |
 
@@ -100,16 +100,17 @@
 |------|--------|--------------|
 | 2026-05-05 | Project scaffolding: pyproject.toml, config, directory structure | — (infrastructure only) |
 | 2026-05-06 | Core models (request.py, response.py), FastAPI app (main.py), API key auth, tests passing | FR-INPUT-001, FR-INPUT-002, FR-INPUT-003, FR-COMP-003, FR-OUT-001 |
+| 2026-05-06 | NER service, LLM service, Follow-up engine + 17 tests | FR-NER-001, FR-NER-002, FR-NER-003, FR-FOLLOWUP-001, FR-FOLLOWUP-002, FR-FOLLOWUP-003 |
 
 ---
 
 ## Next Up
 
-**Phase 2, Step 6: NER Service**
-- `app/services/ner_service.py` → FR-NER-001, FR-NER-002, FR-NER-003
+**Phase 3, Step 9: Diagnosis Engine**
+- `app/services/diagnosis_engine.py` → FR-DIAG-001, FR-DIAG-002, FR-DIAG-003
 
-**Phase 2, Step 7: LLM Service**
-- `app/services/llm_service.py` → Foundation for FR-FOLLOWUP, FR-DIAG, FR-TREAT
+**Phase 3, Step 10: Treatment Engine**
+- `app/services/treatment_engine.py` → FR-TREAT-001, FR-TREAT-002, FR-TREAT-003
 
-**Phase 2, Step 8: Follow-up Engine**
-- `app/services/followup_engine.py` → FR-FOLLOWUP-001, FR-FOLLOWUP-002, FR-FOLLOWUP-003
+**Phase 3, Step 11: Compliance Engine**
+- `app/services/compliance_engine.py` → FR-COMP-001, FR-COMP-002, FR-RED-001, FR-RED-002
