@@ -2,10 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.db import Patient, async_session, get_db, init_db
+from app.db import Patient, async_session, init_db
 from app.models.request import DiagnoseRequest, FollowupRequest, PatientInfo
 from app.models.response import DiagnoseResponse
 from app.routes import conversations, patients
