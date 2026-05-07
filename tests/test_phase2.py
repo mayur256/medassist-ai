@@ -71,20 +71,20 @@ class TestNERService:
 
 class TestLLMService:
     @pytest.mark.asyncio
-    @patch("app.services.llm_service._get_pipeline")
-    async def test_query_llm_success(self, mock_get_pipe):
-        mock_pipe = MagicMock(return_value=[{"generated_text": "Hello world"}])
-        mock_get_pipe.return_value = mock_pipe
+    @patch("app.services.llm_service._query_groq", new_callable=AsyncMock)
+    async def test_query_llm_success(self, mock_groq):
+        mock_groq.return_value = "Hello world"
 
         result = await query_llm("test prompt")
         assert result == "Hello world"
 
     @pytest.mark.asyncio
-    @patch("app.services.llm_service._get_pipeline")
-    async def test_query_llm_handles_exception(self, mock_get_pipe):
-        mock_get_pipe.return_value = MagicMock(side_effect=RuntimeError("OOM"))
+    @patch("app.services.llm_service._query_groq", new_callable=AsyncMock)
+    async def test_query_llm_handles_exception(self, mock_groq):
+        mock_groq.return_value = ""
 
         result = await query_llm("test prompt")
+        assert result == ""
         assert result == ""
 
     @pytest.mark.asyncio

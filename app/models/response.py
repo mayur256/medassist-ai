@@ -12,6 +12,8 @@ class Diagnosis(BaseModel):
 
 
 class DiagnoseResponse(BaseModel):
+    session_id: str | None = None
+    status: str = "complete"  # "awaiting_followup" or "complete"
     follow_up_questions: list[str] = []
     differential_diagnosis: list[Diagnosis] = []
     suggested_tests: list[str] = []

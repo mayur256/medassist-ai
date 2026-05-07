@@ -23,11 +23,13 @@ class GraphState(TypedDict):
     treatments: list[str]
     red_flags: list[str]
     iteration: int
+    additional_context: str
 
 
 def ner_node(state: GraphState) -> dict:
     """Extract entities from symptom text."""
-    result = extract_entities(state["request"].symptoms)
+    text = state["request"].symptoms + " " + state.get("additional_context", "")
+    result = extract_entities(text)
     return {
         "symptoms": result.symptoms,
         "duration": result.duration,
@@ -48,15 +50,6 @@ async def followup_node(state: GraphState) -> dict:
         "follow_up_questions": state["follow_up_questions"] + result["questions"],
         "iteration": state["iteration"] + 1,
     }
-
-
-def should_continue_followup(state: GraphState) -> str:
-    """Decide whether to continue follow-up or proceed to diagnosis."""
-    from app.config import settings
-
-    if state["iteration"] >= settings.max_followup_iterations:
-        return "diagnose"
-    return "diagnose"
 
 
 async def diagnosis_node(state: GraphState) -> dict:
@@ -95,33 +88,40 @@ def compliance_node(state: GraphState) -> dict:
     }
 
 
-def build_graph() -> StateGraph:
-    """Build the LangGraph pipeline."""
-    graph = StateGraph(GraphState)
+# --- Initial pipeline: NER → Followup only ---
 
+def _build_initial_graph() -> StateGraph:
+    graph = StateGraph(GraphState)
     graph.add_node("ner", ner_node)
     graph.add_node("followup", followup_node)
-    graph.add_node("diagnosis", diagnosis_node)
-    graph.add_node("treatment", treatment_node)
-    graph.add_node("compliance", compliance_node)
-
     graph.set_entry_point("ner")
     graph.add_edge("ner", "followup")
-    graph.add_conditional_edges("followup", should_continue_followup, {"diagnose": "diagnosis"})
-    graph.add_edge("diagnosis", "treatment")
-    graph.add_edge("treatment", "compliance")
-    graph.add_edge("compliance", END)
-
+    graph.add_edge("followup", END)
     return graph.compile()
 
 
-# Compiled graph singleton
-pipeline = build_graph()
+# --- Full pipeline: NER → Diagnosis → Treatment → Compliance ---
+
+def _build_full_graph() -> StateGraph:
+    graph = StateGraph(GraphState)
+    graph.add_node("ner", ner_node)
+    graph.add_node("diagnosis", diagnosis_node)
+    graph.add_node("treatment", treatment_node)
+    graph.add_node("compliance", compliance_node)
+    graph.set_entry_point("ner")
+    graph.add_edge("ner", "diagnosis")
+    graph.add_edge("diagnosis", "treatment")
+    graph.add_edge("treatment", "compliance")
+    graph.add_edge("compliance", END)
+    return graph.compile()
 
 
-async def run_pipeline(request: DiagnoseRequest) -> DiagnoseResponse:
-    """Execute the full orchestration pipeline and return a DiagnoseResponse."""
-    initial_state: GraphState = {
+initial_pipeline = _build_initial_graph()
+full_pipeline = _build_full_graph()
+
+
+def _make_initial_state(request: DiagnoseRequest, additional_context: str = "") -> GraphState:
+    return {
         "request": request,
         "symptoms": [],
         "duration": None,
@@ -131,15 +131,23 @@ async def run_pipeline(request: DiagnoseRequest) -> DiagnoseResponse:
         "treatments": [],
         "red_flags": [],
         "iteration": 0,
+        "additional_context": additional_context,
     }
 
-    result = await pipeline.ainvoke(initial_state)
 
+async def run_initial(request: DiagnoseRequest) -> dict:
+    """Run NER + followup only. Returns state with symptoms and questions."""
+    state = _make_initial_state(request)
+    return await initial_pipeline.ainvoke(state)
+
+
+async def run_full(request: DiagnoseRequest, additional_context: str = "") -> DiagnoseResponse:
+    """Run full pipeline (NER → Diagnosis → Treatment → Compliance)."""
+    state = _make_initial_state(request, additional_context)
+    result = await full_pipeline.ainvoke(state)
     return DiagnoseResponse(
-        follow_up_questions=result["follow_up_questions"],
-        differential_diagnosis=[
-            Diagnosis(**d) for d in result["diagnoses"]
-        ],
+        status="complete",
+        differential_diagnosis=[Diagnosis(**d) for d in result["diagnoses"]],
         treatment_options=result["treatments"],
         red_flags=result["red_flags"],
     )

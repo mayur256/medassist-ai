@@ -21,3 +21,13 @@ class PatientInfo(BaseModel):
 class DiagnoseRequest(BaseModel):
     patient: PatientInfo
     symptoms: str = Field(..., min_length=1)
+
+
+class FollowupAnswer(BaseModel):
+    question: str
+    answer: str
+
+
+class FollowupRequest(BaseModel):
+    session_id: str
+    answers: list[FollowupAnswer]

@@ -68,9 +68,12 @@ class TestAPI:
         )
         assert r.status_code == 401
 
-    @patch("app.orchestrator.graph.run_pipeline", new_callable=AsyncMock)
-    def test_diagnose_valid(self, mock_pipeline):
-        mock_pipeline.return_value = DiagnoseResponse()
+    @patch("app.orchestrator.graph.run_initial", new_callable=AsyncMock)
+    def test_diagnose_valid(self, mock_initial):
+        mock_initial.return_value = {
+            "symptoms": ["headache"], "duration": None, "severity": None,
+            "follow_up_questions": [], "iteration": 1,
+        }
         r = client.post(
             "/diagnose",
             json={"patient": {"age": 30, "gender": "male", "country": "India"}, "symptoms": "headache"},
@@ -79,7 +82,7 @@ class TestAPI:
         assert r.status_code == 200
         data = r.json()
         assert data["disclaimer"] == DISCLAIMER
-        assert data["differential_diagnosis"] == []
+        assert data["status"] == "awaiting_followup"
 
     def test_diagnose_invalid_input(self):
         r = client.post(
