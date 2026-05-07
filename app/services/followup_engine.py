@@ -3,25 +3,19 @@
 from app.config import settings
 from app.services.llm_service import query_llm_json
 
-FOLLOWUP_PROMPT = """You are a medical assistant gathering patient information.
+FOLLOWUP_PROMPT = """You are a medical assistant. Based on the patient info below, generate follow-up questions.
 
 Patient: {age} year old {gender} from {country}
 Known conditions: {conditions}
 Allergies: {allergies}
-Symptoms reported: {symptoms}
-Previous questions asked: {previous_questions}
+Symptoms: {symptoms}
+Previous questions: {previous_questions}
 
-Generate up to {max_questions} follow-up questions to better understand the patient's condition.
-Rules:
-- Ask only medically relevant questions
-- Do NOT repeat any previous questions
-- Focus on: onset, triggers, associated symptoms, severity changes
-- If enough information is available, return fewer or no questions
+Respond with ONLY this JSON, nothing else:
+{{"questions": ["question1", "question2"], "confidence": 0.5}}
 
-Respond ONLY with a JSON object:
-{{"questions": ["question1", "question2"], "confidence": 0.0}}
-
-The confidence field (0.0-1.0) indicates how confident you are that you have enough information for a differential diagnosis."""
+Generate up to {max_questions} questions. Set confidence 0.0-1.0 based on how much info you have.
+JSON:"""
 
 
 async def generate_followup(

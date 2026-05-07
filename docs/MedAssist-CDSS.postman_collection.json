@@ -1,0 +1,116 @@
+{
+  "info": {
+    "name": "MedAssist-CDSS",
+    "description": "AI-powered Clinical Decision Support System API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "api_key",
+      "value": "your-api-key-here"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health",
+        "header": []
+      }
+    },
+    {
+      "name": "Diagnose - Basic Symptoms",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/diagnose",
+        "header": [
+          { "key": "X-API-Key", "value": "{{api_key}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patient\": {\n    \"age\": 45,\n    \"gender\": \"male\",\n    \"country\": \"India\",\n    \"known_conditions\": [\"hypertension\"],\n    \"allergies\": [\"penicillin\"]\n  },\n  \"symptoms\": \"chest pain for 2 days with shortness of breath\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Diagnose - Red Flag Symptoms",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/diagnose",
+        "header": [
+          { "key": "X-API-Key", "value": "{{api_key}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patient\": {\n    \"age\": 60,\n    \"gender\": \"female\",\n    \"country\": \"US\",\n    \"known_conditions\": [\"diabetes\"],\n    \"allergies\": []\n  },\n  \"symptoms\": \"sudden severe headache with loss of consciousness and slurred speech\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Diagnose - UK Patient",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/diagnose",
+        "header": [
+          { "key": "X-API-Key", "value": "{{api_key}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patient\": {\n    \"age\": 28,\n    \"gender\": \"female\",\n    \"country\": \"UK\",\n    \"known_conditions\": [],\n    \"allergies\": [\"sulfa\"]\n  },\n  \"symptoms\": \"persistent cough for 3 weeks with mild fever and fatigue\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Diagnose - Invalid Input (bad age)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/diagnose",
+        "header": [
+          { "key": "X-API-Key", "value": "{{api_key}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patient\": {\n    \"age\": -1,\n    \"gender\": \"male\",\n    \"country\": \"India\"\n  },\n  \"symptoms\": \"headache\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Diagnose - Invalid Country",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/diagnose",
+        "header": [
+          { "key": "X-API-Key", "value": "{{api_key}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patient\": {\n    \"age\": 30,\n    \"gender\": \"male\",\n    \"country\": \"Canada\"\n  },\n  \"symptoms\": \"headache\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Diagnose - No Auth (should 401)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/diagnose",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patient\": {\n    \"age\": 30,\n    \"gender\": \"male\",\n    \"country\": \"India\"\n  },\n  \"symptoms\": \"headache\"\n}"
+        }
+      }
+    }
+  ]
+}

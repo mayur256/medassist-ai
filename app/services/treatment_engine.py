@@ -4,24 +4,18 @@ import re
 
 from app.services.llm_service import query_llm_json
 
-TREATMENT_PROMPT = """You are a clinical decision support system suggesting treatment options.
+TREATMENT_PROMPT = """You are a clinical decision support system. Suggest general treatment approaches.
 
 Patient: {age} year old {gender} from {country}
 Known conditions: {conditions}
 Allergies: {allergies}
-Differential diagnoses: {diagnoses}
+Diagnoses: {diagnoses}
 
-Suggest treatment options for the most likely conditions.
+Respond with ONLY this JSON, nothing else:
+{{"treatments": ["treatment 1", "treatment 2", "treatment 3"]}}
 
-Rules:
-- Suggest general treatment approaches ONLY (e.g., "analgesics", "rest", "physical therapy")
-- NEVER prescribe specific drugs with dosage
-- NEVER generate a prescription
-- AVOID any medication the patient is allergic to: {allergies}
-- Include lifestyle and non-pharmacological options where appropriate
-
-Respond ONLY with JSON:
-{{"treatments": ["treatment option 1", "treatment option 2"]}}"""
+Rules: suggest general approaches only (e.g. "analgesics", "rest", "physical therapy"). NO specific drug dosages. Avoid anything the patient is allergic to.
+JSON:"""
 
 # Patterns that indicate prescription/dosage content
 DOSAGE_PATTERNS = [

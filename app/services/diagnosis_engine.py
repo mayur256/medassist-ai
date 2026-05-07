@@ -2,7 +2,7 @@
 
 from app.services.llm_service import query_llm_json
 
-DIAGNOSIS_PROMPT = """You are a clinical decision support system generating differential diagnoses.
+DIAGNOSIS_PROMPT = """You are a clinical decision support system. Generate differential diagnoses for this patient.
 
 Patient: {age} year old {gender} from {country}
 Known conditions: {conditions}
@@ -11,19 +11,11 @@ Symptoms: {symptoms}
 Duration: {duration}
 Severity: {severity}
 
-Generate a list of possible differential diagnoses. For each, provide:
-- condition: the medical condition name
-- confidence: a float 0.0-1.0 indicating likelihood
-- reasoning: brief clinical reasoning
+Respond with ONLY this JSON, nothing else:
+{{"diagnoses": [{{"condition": "name", "confidence": 0.7, "reasoning": "brief reason"}}]}}
 
-Rules:
-- Generate ONLY differential diagnoses, NEVER a final/definitive diagnosis
-- Consider patient age, gender, and known conditions
-- Rank by likelihood
-- Maximum 5 diagnoses
-
-Respond ONLY with JSON:
-{{"diagnoses": [{{"condition": "...", "confidence": 0.0, "reasoning": "..."}}]}}"""
+List up to 5 possible conditions ranked by likelihood.
+JSON:"""
 
 
 async def generate_diagnoses(
