@@ -1,11 +1,23 @@
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.models.request import DiagnoseRequest, FollowupRequest
+from app.db import Patient, async_session, get_db, init_db
+from app.models.request import DiagnoseRequest, FollowupRequest, PatientInfo
 from app.models.response import DiagnoseResponse
+from app.routes import conversations, patients
 
-app = FastAPI(title=settings.app_name)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,11 +26,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(patients.router)
+app.include_router(conversations.router)
+
 
 def verify_api_key(x_api_key: str = Header(...)) -> str:
     if not settings.api_key or x_api_key != settings.api_key:
         raise HTTPException(status_code=401, detail="Invalid API key")
     return x_api_key
+
+
+async def _resolve_patient(request: DiagnoseRequest) -> PatientInfo:
+    """Resolve patient info from patient_id or inline patient data."""
+    if request.patient_id:
+        async with async_session() as db:
+            patient = await db.get(Patient, request.patient_id)
+            if not patient:
+                raise HTTPException(status_code=404, detail="Patient not found")
+            return PatientInfo(
+                age=patient.age,
+                gender=patient.gender,
+                country=patient.country,
+                known_conditions=patient.known_conditions or [],
+                allergies=patient.allergies or [],
+            )
+    if request.patient:
+        return request.patient
+    raise HTTPException(status_code=422, detail="Provide either patient or patient_id")
 
 
 @app.get("/health")
@@ -32,10 +66,12 @@ async def diagnose(request: DiagnoseRequest, _: str = Depends(verify_api_key)):
     from app.orchestrator.graph import run_initial
     from app.services.session_store import create_session
 
+    patient_info = await _resolve_patient(request)
+    request.patient = patient_info
+
     session = create_session(request)
     result = await run_initial(request)
 
-    # Save state to session
     session.symptoms = result["symptoms"]
     session.duration = result["duration"]
     session.severity = result["severity"]
@@ -53,18 +89,16 @@ async def diagnose(request: DiagnoseRequest, _: str = Depends(verify_api_key)):
 async def diagnose_followup(request: FollowupRequest, _: str = Depends(verify_api_key)):
     """Process follow-up answers and return full diagnosis."""
     from app.orchestrator.graph import run_full
-    from app.services.session_store import get_session, delete_session
+    from app.services.session_store import delete_session, get_session
 
     session = get_session(request.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found or expired")
 
-    # Build additional context from answers
     additional_context = " ".join(
         f"{a.question} Answer: {a.answer}" for a in request.answers
     )
 
-    # Run full pipeline with original request + followup context
     response = await run_full(session.request, additional_context)
     response.session_id = session.id
     response.follow_up_questions = session.follow_up_questions

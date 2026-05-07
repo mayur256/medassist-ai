@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     api_key: str = ""
     groq_api_key: str = ""
     groq_model: str = "llama-3.1-8b-instant"
+    database_url: str = "postgresql+asyncpg://medassist:medassist123@localhost:5437/medassist"
     llm_model: str = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
     hf_inference_model: str = "Qwen/Qwen2.5-7B-Instruct"
     hf_api_token: str = ""

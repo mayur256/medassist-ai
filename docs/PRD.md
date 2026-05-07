@@ -175,7 +175,77 @@ Healthcare professionals face cognitive overload when evaluating complex symptom
 
 ---
 
-## 10. Risks & Mitigations
+## 10. Phase 5 — Patient Profiles & Chat Conversations
+
+### 10.1 Patient Profiles (FR-PATIENT)
+
+| ID | Requirement |
+|----|-------------|
+| FR-PATIENT-001 | Create, read, update, delete patient profiles with demographics (name, age, gender, country, known_conditions, allergies) |
+| FR-PATIENT-002 | Each patient has a unique UUID; diagnose endpoint accepts `patient_id` to auto-load demographics |
+| FR-PATIENT-003 | Patient data persisted in PostgreSQL |
+
+### 10.2 Chat Conversations (FR-CHAT)
+
+| ID | Requirement |
+|----|-------------|
+| FR-CHAT-001 | Each patient can have multiple conversation threads (consultations) |
+| FR-CHAT-002 | Each conversation stores an ordered list of messages with roles: `patient`, `assistant`, `system` |
+| FR-CHAT-003 | Patient messages contain symptom descriptions and follow-up answers |
+| FR-CHAT-004 | Assistant messages contain follow-up questions, diagnoses, and treatment suggestions |
+| FR-CHAT-005 | Full message history is passed as context to LLM on each turn for continuity |
+| FR-CHAT-006 | Conversations are persistent and retrievable for frontend chat rendering |
+
+### 10.3 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /patients | Create patient profile |
+| GET | /patients | List all patients |
+| GET | /patients/{id} | Get patient by ID |
+| PUT | /patients/{id} | Update patient profile |
+| DELETE | /patients/{id} | Delete patient profile |
+| POST | /patients/{id}/conversations | Start new conversation |
+| GET | /patients/{id}/conversations | List conversations for patient |
+| POST | /conversations/{id}/messages | Send a message (triggers AI response) |
+| GET | /conversations/{id}/messages | Get full chat history |
+
+### 10.4 Data Model
+
+**Patient:**
+- id (UUID, primary key)
+- name (string)
+- age (int)
+- gender (string)
+- country (string)
+- known_conditions (JSON array)
+- allergies (JSON array)
+- created_at (timestamp)
+
+**Conversation:**
+- id (UUID, primary key)
+- patient_id (UUID, foreign key → Patient)
+- title (string, auto-generated from first message)
+- status (string: "active" | "completed")
+- created_at (timestamp)
+
+**Message:**
+- id (UUID, primary key)
+- conversation_id (UUID, foreign key → Conversation)
+- role (string: "patient" | "assistant" | "system")
+- content (text)
+- metadata (JSON — stores structured data: diagnoses, treatments, red_flags for assistant messages)
+- created_at (timestamp)
+
+### 10.5 Storage
+
+- PostgreSQL (Docker-based)
+- SQLAlchemy ORM with async support via asyncpg
+- Database auto-migrated on startup
+
+---
+
+## 11. Risks & Mitigations
 
 | Risk | Mitigation |
 |------|-----------|

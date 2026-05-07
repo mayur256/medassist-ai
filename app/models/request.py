@@ -19,7 +19,8 @@ class PatientInfo(BaseModel):
 
 
 class DiagnoseRequest(BaseModel):
-    patient: PatientInfo
+    patient: PatientInfo | None = None
+    patient_id: str | None = None
     symptoms: str = Field(..., min_length=1)
 
 
