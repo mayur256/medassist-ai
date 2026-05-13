@@ -7,6 +7,7 @@ import urllib3
 os.environ["HF_HUB_DISABLE_SSL_VERIFY"] = "1"
 os.environ["CURL_CA_BUNDLE"] = ""
 os.environ["REQUESTS_CA_BUNDLE"] = ""
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ssl._create_default_https_context = ssl._create_unverified_context
 
