@@ -217,3 +217,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Playwright MCP
+playwright-report/
+test-results/
+.playwright/
+playwright.config.*
+.playwright-mcp
