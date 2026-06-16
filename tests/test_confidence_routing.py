@@ -211,9 +211,10 @@ class TestChatEngineConfidenceRouting:
     """Test confidence-based routing in the chat engine."""
 
     @pytest.mark.asyncio
+    @patch("app.services.chat_engine.get_patient_history_summary", new_callable=AsyncMock, return_value="")
     @patch("app.services.chat_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.chat_engine.extract_entities")
-    async def test_low_confidence_asks_followup(self, mock_ner, mock_llm):
+    async def test_low_confidence_asks_followup(self, mock_ner, mock_llm, mock_history):
         """Chat engine with low confidence should ask follow-up."""
         from app.services.ner_service import NERResult
         mock_ner.return_value = NERResult(symptoms=["headache"], duration=None, severity=None)
@@ -238,9 +239,10 @@ class TestChatEngineConfidenceRouting:
         assert result["metadata"]["confidence"] == 0.3
 
     @pytest.mark.asyncio
+    @patch("app.services.chat_engine.get_patient_history_summary", new_callable=AsyncMock, return_value="")
     @patch("app.services.chat_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.chat_engine.extract_entities")
-    async def test_high_confidence_triggers_diagnosis(self, mock_ner, mock_llm):
+    async def test_high_confidence_triggers_diagnosis(self, mock_ner, mock_llm, mock_history):
         """Chat engine with high confidence should proceed to diagnosis."""
         from app.services.ner_service import NERResult
         mock_ner.return_value = NERResult(symptoms=["chest pain"], duration="2 days", severity="severe")
@@ -271,9 +273,10 @@ class TestChatEngineConfidenceRouting:
         assert result["metadata"]["confidence"] == 1.0
 
     @pytest.mark.asyncio
+    @patch("app.services.chat_engine.get_patient_history_summary", new_callable=AsyncMock, return_value="")
     @patch("app.services.chat_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.chat_engine.extract_entities")
-    async def test_max_questions_forces_diagnosis(self, mock_ner, mock_llm):
+    async def test_max_questions_forces_diagnosis(self, mock_ner, mock_llm, mock_history):
         """After max questions asked, chat engine forces diagnosis."""
         from app.services.ner_service import NERResult
         mock_ner.return_value = NERResult(symptoms=["cough"], duration=None, severity=None)

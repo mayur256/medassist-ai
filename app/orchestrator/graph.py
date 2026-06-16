@@ -175,6 +175,13 @@ async def run_initial(request: DiagnoseRequest) -> dict:
 
 async def run_full(request: DiagnoseRequest, additional_context: str = "") -> DiagnoseResponse:
     """Run full pipeline (NER → Diagnosis → Treatment → Compliance)."""
+    # Inject patient history if patient_id is available
+    if request.patient_id:
+        from app.services.history_service import get_patient_history_summary
+        history = await get_patient_history_summary(request.patient_id)
+        if history:
+            additional_context = f"Past consultations:\n{history}\n\n{additional_context}"
+
     state = _make_initial_state(request, additional_context)
     result = await full_pipeline.ainvoke(state)
     return DiagnoseResponse(

@@ -3,6 +3,7 @@
 from app.config import settings
 from app.db import Message, Patient
 from app.services.compliance_engine import apply_compliance
+from app.services.history_service import get_patient_history_summary
 from app.services.llm_service import query_llm_json
 from app.services.ner_service import extract_entities
 
@@ -11,7 +12,7 @@ FOLLOWUP_PROMPT = """You are a clinical decision support assistant. Be concise a
 Patient: {age} year old {gender} from {country}
 Known conditions: {conditions}
 Allergies: {allergies}
-
+{patient_history_block}
 Conversation so far:
 {history}
 
@@ -37,7 +38,7 @@ DIAGNOSE_PROMPT = """You are a clinical decision support assistant. Be concise a
 Patient: {age} year old {gender} from {country}
 Known conditions: {conditions}
 Allergies: {allergies}
-
+{patient_history_block}
 Conversation so far:
 {history}
 
@@ -71,7 +72,7 @@ def _extract_asked_questions(messages: list[Message]) -> list[str]:
     return questions
 
 
-async def process_chat_message(patient: Patient, messages: list[Message]) -> dict:
+async def process_chat_message(patient: Patient, messages: list[Message], conversation_id: str | None = None) -> dict:
     """Process chat using full history with confidence-based routing."""
     history_lines = []
     for msg in messages:
@@ -86,12 +87,17 @@ async def process_chat_message(patient: Patient, messages: list[Message]) -> dic
     raw_text = latest_patient_msg.content if latest_patient_msg else ""
     ner_result = extract_entities(raw_text)
 
+    # Fetch past consultation history for longitudinal context
+    patient_history = await get_patient_history_summary(patient.id, exclude_conversation_id=conversation_id)
+    history_block = f"Past consultations:\n{patient_history}" if patient_history else ""
+
     fmt_kwargs = dict(
         age=patient.age,
         gender=patient.gender,
         country=patient.country,
         conditions=", ".join(patient.known_conditions or []) or "none",
         allergies=", ".join(patient.allergies or []) or "none",
+        patient_history_block=history_block,
         history=history or "No messages yet",
     )
 

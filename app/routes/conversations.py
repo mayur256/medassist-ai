@@ -100,7 +100,7 @@ async def send_message(conversation_id: str, data: MessageCreate, db: AsyncSessi
 
     # Run AI pipeline
     from app.services.chat_engine import process_chat_message
-    ai_response = await process_chat_message(conv.patient, history)
+    ai_response = await process_chat_message(conv.patient, history, conversation_id=conversation_id)
 
     # Save assistant message
     assistant_msg = Message(
