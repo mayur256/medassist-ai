@@ -4,6 +4,7 @@ from typing import TypedDict
 
 from langgraph.graph import END, StateGraph
 
+from app.config import settings
 from app.models.request import DiagnoseRequest
 from app.models.response import DiagnoseResponse, Diagnosis
 from app.services.compliance_engine import apply_compliance
@@ -22,7 +23,10 @@ class GraphState(TypedDict):
     diagnoses: list[dict]
     treatments: list[str]
     red_flags: list[str]
+    urgency_score: int
+    urgency_rationale: str
     iteration: int
+    confidence: float
     additional_context: str
 
 
@@ -38,7 +42,7 @@ def ner_node(state: GraphState) -> dict:
 
 
 async def followup_node(state: GraphState) -> dict:
-    """Generate follow-up questions."""
+    """Generate follow-up questions with confidence scoring."""
     patient = state["request"].patient.model_dump()
     result = await generate_followup(
         symptoms=state["symptoms"],
@@ -49,7 +53,17 @@ async def followup_node(state: GraphState) -> dict:
     return {
         "follow_up_questions": state["follow_up_questions"] + result["questions"],
         "iteration": state["iteration"] + 1,
+        "confidence": result["confidence"],
     }
+
+
+def should_diagnose(state: GraphState) -> str:
+    """Route to diagnosis if confidence is high enough or max iterations reached."""
+    if state["confidence"] >= settings.confidence_threshold:
+        return "diagnosis"
+    if state["iteration"] >= settings.max_followup_iterations:
+        return "diagnosis"
+    return END
 
 
 async def diagnosis_node(state: GraphState) -> dict:
@@ -76,27 +90,38 @@ async def treatment_node(state: GraphState) -> dict:
 
 def compliance_node(state: GraphState) -> dict:
     """Apply compliance rules and detect red flags."""
+    patient = state["request"].patient
     result = apply_compliance(
         treatments=state["treatments"],
         symptoms=state["symptoms"],
         raw_text=state["request"].symptoms,
-        country=state["request"].patient.country,
+        country=patient.country,
+        patient_age=patient.age,
+        known_conditions=patient.known_conditions,
     )
     return {
         "treatments": result["treatments"],
         "red_flags": result["red_flags"],
+        "urgency_score": result["urgency_score"],
+        "urgency_rationale": result["urgency_rationale"],
     }
 
 
-# --- Initial pipeline: NER → Followup only ---
+# --- Initial pipeline: NER → Followup with confidence-based routing ---
 
 def _build_initial_graph() -> StateGraph:
     graph = StateGraph(GraphState)
     graph.add_node("ner", ner_node)
     graph.add_node("followup", followup_node)
+    graph.add_node("diagnosis", diagnosis_node)
+    graph.add_node("treatment", treatment_node)
+    graph.add_node("compliance", compliance_node)
     graph.set_entry_point("ner")
     graph.add_edge("ner", "followup")
-    graph.add_edge("followup", END)
+    graph.add_conditional_edges("followup", should_diagnose, {"diagnosis": "diagnosis", END: END})
+    graph.add_edge("diagnosis", "treatment")
+    graph.add_edge("treatment", "compliance")
+    graph.add_edge("compliance", END)
     return graph.compile()
 
 
@@ -130,13 +155,20 @@ def _make_initial_state(request: DiagnoseRequest, additional_context: str = "") 
         "diagnoses": [],
         "treatments": [],
         "red_flags": [],
+        "urgency_score": 1,
+        "urgency_rationale": "",
         "iteration": 0,
+        "confidence": 0.0,
         "additional_context": additional_context,
     }
 
 
 async def run_initial(request: DiagnoseRequest) -> dict:
-    """Run NER + followup only. Returns state with symptoms and questions."""
+    """Run NER + followup with confidence-based routing.
+
+    If confidence >= threshold, proceeds to full diagnosis automatically.
+    Otherwise returns state with follow-up questions.
+    """
     state = _make_initial_state(request)
     return await initial_pipeline.ainvoke(state)
 
@@ -150,4 +182,7 @@ async def run_full(request: DiagnoseRequest, additional_context: str = "") -> Di
         differential_diagnosis=[Diagnosis(**d) for d in result["diagnoses"]],
         treatment_options=result["treatments"],
         red_flags=result["red_flags"],
+        urgency_score=result.get("urgency_score", 1),
+        urgency_rationale=result.get("urgency_rationale", ""),
+        confidence=result.get("confidence", 0.0),
     )

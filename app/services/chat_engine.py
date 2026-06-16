@@ -1,11 +1,10 @@
 """Chat engine — processes patient messages using full conversation history."""
 
+from app.config import settings
 from app.db import Message, Patient
 from app.services.compliance_engine import apply_compliance
 from app.services.llm_service import query_llm_json
 from app.services.ner_service import extract_entities
-
-MAX_FOLLOWUP_QUESTIONS = 2
 
 FOLLOWUP_PROMPT = """You are a clinical decision support assistant. Be concise and decisive.
 
@@ -24,10 +23,12 @@ RULES:
 - NEVER repeat, rephrase, or ask a semantically similar question to one already asked above
 - If the patient says "no" to a question, accept it and move on
 - Only ask if critical information is truly missing to differentiate conditions
+- Set confidence 0.0-1.0 based on how sufficient the gathered info is for diagnosis
 
 Respond with ONLY this JSON:
 {{
-  "content": "your single follow-up question"
+  "content": "your single follow-up question",
+  "confidence": 0.5
 }}
 JSON:"""
 
@@ -71,7 +72,7 @@ def _extract_asked_questions(messages: list[Message]) -> list[str]:
 
 
 async def process_chat_message(patient: Patient, messages: list[Message]) -> dict:
-    """Process chat using full history. Returns dict with content and metadata."""
+    """Process chat using full history with confidence-based routing."""
     history_lines = []
     for msg in messages:
         role_label = "Doctor" if msg.role == "patient" else "Assistant"
@@ -79,15 +80,11 @@ async def process_chat_message(patient: Patient, messages: list[Message]) -> dic
     history = "\n".join(history_lines)
 
     asked_questions = _extract_asked_questions(messages)
-    patient_msg_count = sum(1 for m in messages if m.role == "patient")
 
     # Extract entities from latest patient message
     latest_patient_msg = next((m for m in reversed(messages) if m.role == "patient"), None)
     raw_text = latest_patient_msg.content if latest_patient_msg else ""
     ner_result = extract_entities(raw_text)
-
-    # HARD RULE: diagnose if we've asked enough questions or have enough patient input
-    should_diagnose = len(asked_questions) >= MAX_FOLLOWUP_QUESTIONS or patient_msg_count >= 3
 
     fmt_kwargs = dict(
         age=patient.age,
@@ -98,54 +95,82 @@ async def process_chat_message(patient: Patient, messages: list[Message]) -> dic
         history=history or "No messages yet",
     )
 
-    if should_diagnose:
-        prompt = DIAGNOSE_PROMPT.format(**fmt_kwargs)
-        result = await query_llm_json(prompt)
+    # Safety cap: max iterations reached → diagnose
+    should_diagnose = len(asked_questions) >= settings.max_followup_iterations
 
-        if not result or not isinstance(result, dict):
-            result = {"content": "Based on the information provided, here is my assessment.", "diagnoses": [], "treatments": [], "suggested_tests": []}
-
-        treatments = result.get("treatments", [])
-        compliance = apply_compliance(
-            treatments=treatments,
-            symptoms=ner_result.symptoms,
-            raw_text=raw_text,
-            country=patient.country,
-        )
-
-        return {
-            "content": result.get("content", ""),
-            "metadata": {
-                "action": "diagnose",
-                "diagnoses": result.get("diagnoses", []),
-                "treatments": compliance["treatments"],
-                "suggested_tests": result.get("suggested_tests", []),
-                "red_flags": compliance["red_flags"],
-                "follow_up_questions": [],
-            },
-        }
-    else:
+    if not should_diagnose:
+        # Ask LLM for follow-up with confidence score
         prompt = FOLLOWUP_PROMPT.format(
             **fmt_kwargs,
             asked_questions="\n".join(f"- {q}" for q in asked_questions) or "None yet",
         )
         result = await query_llm_json(prompt)
 
+        confidence = 0.0
         content = ""
         if result and isinstance(result, dict):
             content = result.get("content", "")
+            confidence = float(result.get("confidence", 0.0))
 
-        if not content:
-            content = "Could you tell me more about your symptoms?"
+        # Confidence-based routing: high confidence → proceed to diagnosis
+        if confidence >= settings.confidence_threshold:
+            should_diagnose = True
+        elif content:
+            return {
+                "content": content,
+                "metadata": {
+                    "action": "followup",
+                    "confidence": confidence,
+                    "diagnoses": [],
+                    "treatments": [],
+                    "suggested_tests": [],
+                    "red_flags": [],
+                    "follow_up_questions": [],
+                },
+            }
+        else:
+            # Fallback if LLM returns empty
+            return {
+                "content": "Could you tell me more about your symptoms?",
+                "metadata": {
+                    "action": "followup",
+                    "confidence": confidence,
+                    "diagnoses": [],
+                    "treatments": [],
+                    "suggested_tests": [],
+                    "red_flags": [],
+                    "follow_up_questions": [],
+                },
+            }
 
-        return {
-            "content": content,
-            "metadata": {
-                "action": "followup",
-                "diagnoses": [],
-                "treatments": [],
-                "suggested_tests": [],
-                "red_flags": [],
-                "follow_up_questions": [],
-            },
-        }
+    # Diagnose path
+    prompt = DIAGNOSE_PROMPT.format(**fmt_kwargs)
+    result = await query_llm_json(prompt)
+
+    if not result or not isinstance(result, dict):
+        result = {"content": "Based on the information provided, here is my assessment.", "diagnoses": [], "treatments": [], "suggested_tests": []}
+
+    treatments = result.get("treatments", [])
+    compliance = apply_compliance(
+        treatments=treatments,
+        symptoms=ner_result.symptoms,
+        raw_text=raw_text,
+        country=patient.country,
+        patient_age=patient.age,
+        known_conditions=patient.known_conditions,
+    )
+
+    return {
+        "content": result.get("content", ""),
+        "metadata": {
+            "action": "diagnose",
+            "confidence": 1.0,
+            "diagnoses": result.get("diagnoses", []),
+            "treatments": compliance["treatments"],
+            "suggested_tests": result.get("suggested_tests", []),
+            "red_flags": compliance["red_flags"],
+            "urgency_score": compliance["urgency_score"],
+            "urgency_rationale": compliance["urgency_rationale"],
+            "follow_up_questions": [],
+        },
+    }

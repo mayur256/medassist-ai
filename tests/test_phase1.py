@@ -68,11 +68,12 @@ class TestAPI:
         )
         assert r.status_code == 401
 
+    @patch("app.services.session_store.save_session", new_callable=AsyncMock)
     @patch("app.orchestrator.graph.run_initial", new_callable=AsyncMock)
-    def test_diagnose_valid(self, mock_initial):
+    def test_diagnose_valid(self, mock_initial, mock_save):
         mock_initial.return_value = {
             "symptoms": ["headache"], "duration": None, "severity": None,
-            "follow_up_questions": [], "iteration": 1,
+            "follow_up_questions": [], "iteration": 1, "confidence": 0.3,
         }
         r = client.post(
             "/diagnose",

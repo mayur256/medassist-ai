@@ -3,6 +3,7 @@
 import json
 import logging
 import re
+import time
 
 import httpx
 
@@ -11,6 +12,15 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+
+# Module-level context for audit trail (set by callers)
+_audit_context: dict = {"conversation_id": None, "step": "unknown"}
+
+
+def set_audit_context(conversation_id: str | None = None, step: str = "unknown"):
+    """Set context for audit logging of subsequent LLM calls."""
+    _audit_context["conversation_id"] = conversation_id
+    _audit_context["step"] = step
 
 
 async def _query_groq(prompt: str) -> str:
@@ -37,8 +47,24 @@ async def _query_groq(prompt: str) -> str:
 
 
 async def query_llm(prompt: str, model: str | None = None) -> str:
-    """Generate text via Groq."""
-    return await _query_groq(prompt)
+    """Generate text via Groq with audit logging."""
+    start = time.time()
+    result = await _query_groq(prompt)
+    latency_ms = (time.time() - start) * 1000
+
+    try:
+        from app.services.audit import log_llm_call
+        await log_llm_call(
+            step=_audit_context.get("step", "unknown"),
+            prompt=prompt,
+            raw_response=result,
+            latency_ms=latency_ms,
+            conversation_id=_audit_context.get("conversation_id"),
+        )
+    except Exception as e:
+        logger.debug("Audit log failed (non-critical): %s", e)
+
+    return result
 
 
 def _extract_json(raw: str) -> dict | list | None:

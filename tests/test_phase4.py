@@ -31,9 +31,10 @@ def _mock_ner(text):
 
 class TestInitialDiagnose:
     @pytest.mark.asyncio
+    @patch("app.services.session_store.save_session", new_callable=AsyncMock)
     @patch("app.orchestrator.graph.extract_entities", side_effect=_mock_ner)
     @patch("app.services.followup_engine.query_llm_json", new_callable=AsyncMock)
-    async def test_returns_session_and_questions(self, mock_followup, mock_ner):
+    async def test_returns_session_and_questions(self, mock_followup, mock_ner, mock_save):
         mock_followup.return_value = {
             "questions": ["Is the pain worse with exertion?", "Any fever?"],
             "confidence": 0.4,
@@ -54,16 +55,34 @@ class TestInitialDiagnose:
 
 class TestFollowup:
     @pytest.mark.asyncio
+    @patch("app.services.session_store.delete_session", new_callable=AsyncMock)
+    @patch("app.services.session_store.get_session", new_callable=AsyncMock)
+    @patch("app.services.session_store.save_session", new_callable=AsyncMock)
     @patch("app.orchestrator.graph.extract_entities", side_effect=_mock_ner)
     @patch("app.services.followup_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.diagnosis_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.treatment_engine.query_llm_json", new_callable=AsyncMock)
-    async def test_full_flow(self, mock_treat, mock_diag, mock_followup, mock_ner):
+    async def test_full_flow(self, mock_treat, mock_diag, mock_followup, mock_ner, mock_save, mock_get, mock_del):
         mock_followup.return_value = {"questions": ["Is pain worse with exertion?"], "confidence": 0.4}
         mock_diag.return_value = {
             "diagnoses": [{"condition": "Angina", "confidence": 0.8, "reasoning": "Chest pain in 45M with HTN"}]
         }
         mock_treat.return_value = {"treatments": ["Antianginal therapy", "Stress test referral"]}
+
+        # Capture the session when saved, return it on get
+        saved_session = None
+
+        async def _save(session):
+            nonlocal saved_session
+            saved_session = session
+
+        async def _get(session_id):
+            if saved_session and saved_session.id == session_id:
+                return saved_session
+            return None
+
+        mock_save.side_effect = _save
+        mock_get.side_effect = _get
 
         from app.main import app
         transport = ASGITransport(app=app)
@@ -88,7 +107,8 @@ class TestFollowup:
         assert "chest pain" in data["red_flags"]
 
     @pytest.mark.asyncio
-    async def test_invalid_session(self):
+    @patch("app.services.session_store.get_session", new_callable=AsyncMock, return_value=None)
+    async def test_invalid_session(self, mock_get):
         from app.main import app
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as ac:

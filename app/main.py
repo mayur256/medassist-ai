@@ -6,8 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.db import Patient, async_session, init_db
 from app.models.request import DiagnoseRequest, FollowupRequest, PatientInfo
-from app.models.response import DiagnoseResponse
+from app.models.response import DiagnoseResponse, Diagnosis
 from app.routes import conversations, patients
+from app.routes import admin as admin_routes
 
 
 @asynccontextmanager
@@ -27,6 +28,7 @@ app.add_middleware(
 
 app.include_router(patients.router)
 app.include_router(conversations.router)
+app.include_router(admin_routes.router)
 
 
 def verify_api_key(x_api_key: str = Header(...)) -> str:
@@ -61,25 +63,49 @@ def health():
 
 @app.post("/diagnose", response_model=DiagnoseResponse)
 async def diagnose(request: DiagnoseRequest, _: str = Depends(verify_api_key)):
-    """Initial diagnosis — runs NER + followup. Returns session_id and questions."""
+    """Initial diagnosis — runs NER + followup with confidence-based routing.
+
+    If confidence >= threshold, returns full diagnosis immediately.
+    Otherwise returns session_id and follow-up questions.
+    """
     from app.orchestrator.graph import run_initial
-    from app.services.session_store import create_session
+    from app.services.session_store import create_session, save_session
 
     patient_info = await _resolve_patient(request)
     request.patient = patient_info
 
-    session = create_session(request)
     result = await run_initial(request)
+    confidence = result.get("confidence", 0.0)
 
+    # High confidence — full diagnosis completed in initial call
+    if result.get("diagnoses"):
+        return DiagnoseResponse(
+            status="complete",
+            confidence=confidence,
+            follow_up_questions=result["follow_up_questions"],
+            differential_diagnosis=[
+                Diagnosis(**d) for d in result["diagnoses"]
+            ],
+            treatment_options=result["treatments"],
+            red_flags=result["red_flags"],
+            urgency_score=result.get("urgency_score", 1),
+            urgency_rationale=result.get("urgency_rationale", ""),
+        )
+
+    # Low confidence — need follow-up, persist session
+    session = create_session(request)
     session.symptoms = result["symptoms"]
     session.duration = result["duration"]
     session.severity = result["severity"]
     session.follow_up_questions = result["follow_up_questions"]
     session.iteration = result["iteration"]
+    session.confidence = confidence
+    await save_session(session)
 
     return DiagnoseResponse(
         session_id=session.id,
         status="awaiting_followup",
+        confidence=confidence,
         follow_up_questions=result["follow_up_questions"],
     )
 
@@ -90,7 +116,7 @@ async def diagnose_followup(request: FollowupRequest, _: str = Depends(verify_ap
     from app.orchestrator.graph import run_full
     from app.services.session_store import delete_session, get_session
 
-    session = get_session(request.session_id)
+    session = await get_session(request.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found or expired")
 
@@ -102,5 +128,5 @@ async def diagnose_followup(request: FollowupRequest, _: str = Depends(verify_ap
     response.session_id = session.id
     response.follow_up_questions = session.follow_up_questions
 
-    delete_session(session.id)
+    await delete_session(session.id)
     return response
