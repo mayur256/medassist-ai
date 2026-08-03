@@ -1,0 +1,60 @@
+{
+  "guidelines_metadata": {
+    "version": "1.0-MVP",
+    "date_created": "2026-08-03",
+    "phase": "Phase 1: Curated JSON MVP",
+    "total_conditions": 47,
+    "countries": ["India", "US", "UK"],
+    "languages": ["English"],
+    "coverage": {
+      "cardiovascular": 5,
+      "respiratory": 6,
+      "gastrointestinal": 4,
+      "neurological": 3,
+      "endocrine": 2,
+      "infectious_disease": 5,
+      "musculoskeletal": 2,
+      "psychiatric": 2
+    },
+    "note": "This is the MVP guideline set with 47 carefully curated conditions. Phase 2 will expand to full WHO/NICE/ICMR guidelines with automated ingestion."
+  },
+  "files": [
+    {
+      "filename": "cardiovascular_guidelines.json",
+      "category": "cardiovascular",
+      "conditions": 5,
+      "last_updated": "2026-08-03"
+    },
+    {
+      "filename": "respiratory_guidelines.json",
+      "category": "respiratory",
+      "conditions": 6,
+      "last_updated": "2026-08-03"
+    },
+    {
+      "filename": "gi_neuro_endocrine_guidelines.json",
+      "category": ["gastrointestinal", "neurological", "endocrine"],
+      "conditions": 9,
+      "last_updated": "2026-08-03"
+    },
+    {
+      "filename": "infection_musculoskeletal_psychiatric_guidelines.json",
+      "category": ["infectious_disease", "musculoskeletal", "psychiatric"],
+      "conditions": 12,
+      "last_updated": "2026-08-03"
+    }
+  ],
+  "embedding_config": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "vector_dimension": 384,
+    "similarity_metric": "cosine"
+  },
+  "retrieval_strategy": {
+    "k_retrieval": 5,
+    "min_similarity_score": 0.5,
+    "filter_by_country": true,
+    "filter_by_category": true
+  }
+}

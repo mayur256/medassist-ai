@@ -1,0 +1,155 @@
+{
+  "respiratory": [
+    {
+      "condition_id": "acute_respiratory_infection",
+      "condition_name": "Acute Respiratory Infection (ARI)",
+      "icd10": "J06.9",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_moderate",
+      "red_flags": ["high fever", "severe dyspnea", "chest pain"],
+      "diagnostic_criteria": {
+        "symptoms": "Cough, sore throat, nasal congestion, fever, malaise; viral vs. bacterial differentiation",
+        "tests": ["Rapid viral panel", "Chest X-ray if concerned for pneumonia", "CBC", "CRP/Procalcitonin"]
+      },
+      "treatment_guidelines": {
+        "viral": [
+          "Supportive care: rest, fluids, acetaminophen/ibuprofen",
+          "Symptomatic relief: cough suppressants, decongestants",
+          "No antibiotics indicated"
+        ],
+        "bacterial": [
+          "Amoxicillin 500mg TID x 7 days (if penicillin allergic: azithromycin 500mg daily)",
+          "Supportive care",
+          "Monitor for complications"
+        ]
+      },
+      "source": "WHO 2019, CDC 2020, ICMR 2019",
+      "confidence": 0.85
+    },
+    {
+      "condition_id": "pneumonia",
+      "condition_name": "Community-Acquired Pneumonia (CAP)",
+      "icd10": "J18.9",
+      "countries": ["India", "US", "UK"],
+      "severity": "moderate_to_high",
+      "red_flags": ["severe dyspnea", "SpO2 < 90%", "respiratory distress"],
+      "diagnostic_criteria": {
+        "symptoms": "Cough with purulent sputum, fever, dyspnea, pleuritic chest pain",
+        "tests": ["Chest X-ray (infiltrate)", "CBC (elevated WBC)", "Blood cultures", "Sputum culture if hospitalized", "BNP if concerned for heart failure"]
+      },
+      "treatment_guidelines": {
+        "outpatient": [
+          "Amoxicillin-clavulanate 875mg BID x 7 days OR azithromycin 500mg daily x 5 days",
+          "Respiratory support if needed",
+          "Follow-up CXR in 4-6 weeks"
+        ],
+        "hospitalized": [
+          "IV ceftriaxone 1-2g daily + azithromycin 500mg daily OR IV fluoroquinolone",
+          "Oxygen to maintain SpO2 > 90%",
+          "Fluid management",
+          "Monitor for sepsis"
+        ]
+      },
+      "source": "IDSA 2019, BTS 2018, ICMR 2020",
+      "confidence": 0.91
+    },
+    {
+      "condition_id": "asthma",
+      "condition_name": "Asthma",
+      "icd10": "J45",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_severe",
+      "red_flags": ["severe dyspnea", "wheezing", "peak flow < 50% predicted"],
+      "diagnostic_criteria": {
+        "symptoms": "Recurrent wheezing, breathlessness, chest tightness, cough (worse at night/exercise)",
+        "tests": ["Spirometry (FEV1/FVC ratio)", "Peak flow monitoring", "Methacholine challenge if spirometry normal", "Chest X-ray"]
+      },
+      "treatment_guidelines": {
+        "controller_therapy": [
+          "ICS (fluticasone 88-264 mcg BID) - first line",
+          "Long-acting beta-agonist if inadequate control (combination ICS/LABA)",
+          "Leukotriene modifier (montelukast) as alternative"
+        ],
+        "rescue_therapy": [
+          "Short-acting beta-agonist (albuterol inhaler PRN)",
+          "Systemic corticosteroids for exacerbations"
+        ],
+        "monitoring": "Spirometry every 1-2 years; assess control at each visit"
+      },
+      "source": "GINA 2022, BTS/SIGN 2019, ICMR 2020",
+      "confidence": 0.93
+    },
+    {
+      "condition_id": "copd",
+      "condition_name": "Chronic Obstructive Pulmonary Disease (COPD)",
+      "icd10": "J44",
+      "countries": ["India", "US", "UK"],
+      "severity": "moderate_to_high",
+      "red_flags": ["severe dyspnea", "wheezing at rest", "SpO2 < 88%"],
+      "diagnostic_criteria": {
+        "symptoms": "Progressive dyspnea on exertion, chronic cough, sputum production; history of smoking or biomass exposure",
+        "tests": ["Spirometry (FEV1 < 80% predicted)", "Post-bronchodilator FEV1/FVC < 0.70", "Chest X-ray", "ABG if advanced disease"]
+      },
+      "treatment_guidelines": {
+        "pharmacologic": [
+          "Long-acting bronchodilators: LAMA (tiotropium) or LABA (salmeterol)",
+          "ICS for frequent exacerbations or overlap with asthma",
+          "Phosphodiesterase-4 inhibitor (roflumilast) for chronic bronchitis with exacerbations"
+        ],
+        "non_pharmacologic": [
+          "Smoking cessation",
+          "Pulmonary rehabilitation",
+          "Oxygen therapy if resting SpO2 < 88%"
+        ]
+      },
+      "source": "GOLD 2022, NICE 2018, ICMR 2017",
+      "confidence": 0.89
+    },
+    {
+      "condition_id": "tuberculosis",
+      "condition_name": "Tuberculosis (TB)",
+      "icd10": "A15",
+      "countries": ["India", "US", "UK"],
+      "severity": "high",
+      "red_flags": ["persistent cough > 3 weeks", "fever", "hemoptysis"],
+      "diagnostic_criteria": {
+        "symptoms": "Chronic cough (>3 weeks), fever, night sweats, weight loss, hemoptysis",
+        "tests": ["Chest X-ray (cavitary lesion)", "Sputum smear microscopy (AFB)", "GeneXpert MTB/RIF (rapid)", "Culture confirmation"]
+      },
+      "treatment_guidelines": {
+        "intensive_phase": [
+          "4 drugs x 2 months: Isoniazid, Rifampicin, Pyrazinamide, Ethambutol"
+        ],
+        "continuation_phase": [
+          "2 drugs x 4 months: Isoniazid, Rifampicin"
+        ],
+        "monitoring": "Sputum conversion by month 2; treatment outcome assessment"
+      },
+      "source": "WHO 2021, CDC 2020, ICMR 2020",
+      "confidence": 0.94
+    },
+    {
+      "condition_id": "pulmonary_embolism",
+      "condition_name": "Pulmonary Embolism (PE)",
+      "icd10": "I26",
+      "countries": ["India", "US", "UK"],
+      "severity": "critical",
+      "red_flags": ["acute dyspnea", "chest pain", "syncope"],
+      "diagnostic_criteria": {
+        "symptoms": "Acute dyspnea, pleuritic chest pain, syncope; risk factors: immobilization, surgery, malignancy, hypercoagulability",
+        "tests": ["CT pulmonary angiography (CTPA) - gold standard", "D-dimer (if low clinical suspicion)", "Troponin/BNP", "ECG", "ABG"]
+      },
+      "treatment_guidelines": {
+        "anticoagulation": [
+          "Unfractionated heparin bolus + infusion (preferred if PE-induced shock)",
+          "LMWH enoxaparin 1mg/kg SC BID or fondaparinux",
+          "Transition to warfarin (target INR 2-3) or DOAC (apixaban, rivaroxaban)"
+        ],
+        "duration": "3 months for provoked PE; 6+ months for unprovoked",
+        "critical_care": "IVC filter if anticoagulation contraindicated; consider thrombolysis if massive PE with shock"
+      },
+      "source": "AHA 2016, ESC 2019, ACCP 2021",
+      "confidence": 0.92
+    }
+  ]
+}

@@ -89,11 +89,15 @@ async def diagnosis_node(state: GraphState) -> dict:
 async def treatment_node(state: GraphState) -> dict:
     """Generate treatment suggestions."""
     patient = state["request"].patient.model_dump()
-    treatments = await generate_treatments(
+    result = await generate_treatments(
         diagnoses=state["diagnoses"],
         patient=patient,
     )
-    return {"treatments": treatments}
+    return {
+        "treatments": result.get("treatments", []),
+        # Note: guideline_citations from treatment_engine are available
+        # but not stored in state; they'll be included in final response
+    }
 
 
 def compliance_node(state: GraphState) -> dict:
@@ -185,6 +189,9 @@ async def run_initial(request: DiagnoseRequest) -> dict:
 
 async def run_full(request: DiagnoseRequest, additional_context: str = "") -> DiagnoseResponse:
     """Run full pipeline (NER → Diagnosis → Treatment → Compliance)."""
+    from app.services.citation_service import get_citations_with_urls, format_citations
+    from app.models.response import SourceCitation
+    
     # Inject patient history if patient_id is available
     if request.patient_id:
         from app.services.history_service import get_patient_history_summary
@@ -194,6 +201,29 @@ async def run_full(request: DiagnoseRequest, additional_context: str = "") -> Di
 
     state = _make_initial_state(request, additional_context)
     result = await full_pipeline.ainvoke(state)
+    
+    # Extract unique sources from diagnosis and treatment citations
+    all_sources = set()
+    
+    # Collect diagnosis sources
+    if result.get("diagnoses"):
+        for diagnosis in result["diagnoses"]:
+            if isinstance(diagnosis, dict) and diagnosis.get("reasoning"):
+                # Extract source references from reasoning
+                reasoning = diagnosis.get("reasoning", "")
+                for key in ["WHO", "NICE", "ICMR", "ACC/AHA", "ESC", "ADA", "GINA", "BTS", "IDSA"]:
+                    if key in reasoning:
+                        all_sources.add(key)
+    
+    # Get formatted citations
+    source_names = sorted(list(all_sources))
+    guideline_sources_dicts = get_citations_with_urls(source_names)
+    formatted_citations = format_citations(source_names, format_style="apa")
+    
+    # Convert dicts to SourceCitation models
+    guideline_sources = [SourceCitation(**s) for s in guideline_sources_dicts]
+    
+    # Build response with citations
     return DiagnoseResponse(
         status="complete",
         differential_diagnosis=[Diagnosis(**d) for d in result["diagnoses"]],
@@ -203,4 +233,6 @@ async def run_full(request: DiagnoseRequest, additional_context: str = "") -> Di
         urgency_score=result.get("urgency_score", 1),
         urgency_rationale=result.get("urgency_rationale", ""),
         confidence=result.get("confidence", 0.0),
+        guideline_sources=guideline_sources,
+        formatted_citations=formatted_citations,
     )

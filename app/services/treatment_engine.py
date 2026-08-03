@@ -3,6 +3,7 @@
 import re
 
 from app.services.llm_service import query_llm_json
+from app.services.rag_service import build_treatment_context
 
 TREATMENT_PROMPT = """You are a clinical decision support system. Suggest general treatment approaches.
 
@@ -11,10 +12,19 @@ Known conditions: {conditions}
 Allergies: {allergies}
 Diagnoses: {diagnoses}
 
+{guidelines_context}
+
+Rules:
+- Suggest general approaches only (e.g. "analgesics", "rest", "physical therapy")
+- NO specific drug dosages or prescription details
+- Avoid anything the patient is allergic to
+- Ground treatment suggestions in the clinical guidelines provided above
+- Prioritize evidence-based approaches from the guidelines
+- Consider patient's known conditions and contraindications
+
 Respond with ONLY this JSON, nothing else:
 {{"treatments": ["treatment 1", "treatment 2", "treatment 3"]}}
 
-Rules: suggest general approaches only (e.g. "analgesics", "rest", "physical therapy"). NO specific drug dosages. Avoid anything the patient is allergic to.
 JSON:"""
 
 # Patterns that indicate prescription/dosage content
@@ -52,25 +62,52 @@ def _filter_allergies(treatments: list[str], allergies: list[str]) -> list[str]:
 async def generate_treatments(
     diagnoses: list[dict],
     patient: dict,
-) -> list[str]:
-    """Generate treatment suggestions. Returns list of treatment option strings."""
+) -> dict:
+    """
+    Generate treatment suggestions. 
+    
+    Returns dict with:
+        - treatments: list of treatment option strings
+        - guideline_citations: citations from guidelines used
+    """
+    country = patient.get("country")
+    allergies = patient.get("allergies", [])
+    
+    # Fetch treatment guidelines using RAG
+    treatment_context = await build_treatment_context(
+        diagnoses=diagnoses,
+        country=country,
+        patient_allergies=allergies,
+    )
+    
+    guidelines_text = treatment_context.get("guidelines_text", "")
+    citations = treatment_context.get("citations", {})
+    
     prompt = TREATMENT_PROMPT.format(
         age=patient.get("age", "unknown"),
         gender=patient.get("gender", "unknown"),
-        country=patient.get("country", "unknown"),
+        country=country or "unknown",
         conditions=", ".join(patient.get("known_conditions", [])) or "none",
-        allergies=", ".join(patient.get("allergies", [])) or "none",
+        allergies=", ".join(allergies) or "none",
         diagnoses=", ".join(d.get("condition", "") for d in diagnoses) or "none",
+        guidelines_context=guidelines_text,
     )
 
     result = await query_llm_json(prompt)
 
     if not result or not isinstance(result, dict):
-        return []
+        return {
+            "treatments": [],
+            "guideline_citations": citations,
+        }
 
     treatments = result.get("treatments", [])
     # Post-processing: remove dosage content and allergy matches
     treatments = [str(t) for t in treatments if isinstance(t, str)]
     treatments = [t for t in treatments if not _contains_dosage(t)]
-    treatments = _filter_allergies(treatments, patient.get("allergies", []))
-    return treatments
+    treatments = _filter_allergies(treatments, allergies)
+    
+    return {
+        "treatments": treatments,
+        "guideline_citations": citations,
+    }

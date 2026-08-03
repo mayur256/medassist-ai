@@ -1,0 +1,235 @@
+{
+  "infectious_disease": [
+    {
+      "condition_id": "urinary_tract_infection",
+      "condition_name": "Urinary Tract Infection (UTI)",
+      "icd10": "N39.0",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_moderate",
+      "red_flags": ["fever > 38.5°C", "flank pain", "sepsis signs"],
+      "diagnostic_criteria": {
+        "symptoms": "Dysuria, urinary frequency, urgency, suprapubic pain; fever if pyelonephritis",
+        "tests": ["Urinalysis (pyuria, nitrites)", "Urine culture (gold standard)", "CBC", "Creatinine"]
+      },
+      "treatment_guidelines": {
+        "cystitis_uncomplicated": [
+          "Nitrofurantoin 100mg BID x 5 days OR trimethoprim-sulfamethoxazole DS BID x 3 days",
+          "Cranberry juice or D-mannose for prevention"
+        ],
+        "pyelonephritis": [
+          "Hospitalization if severe",
+          "IV ceftriaxone 1-2g daily + gentamicin, or fluoroquinolone"
+        ]
+      },
+      "source": "IDSA 2019, EAU 2018, ICMR 2020",
+      "confidence": 0.90
+    },
+    {
+      "condition_id": "malaria",
+      "condition_name": "Malaria",
+      "icd10": "B54",
+      "countries": ["India", "US", "UK"],
+      "severity": "moderate_to_high",
+      "red_flags": ["high fever", "altered mental status", "severe anemia"],
+      "diagnostic_criteria": {
+        "symptoms": "Fever (cyclical: every 48-72 hrs), chills, sweats, malaise; history of travel to endemic area",
+        "tests": ["Thick/thin blood smears", "Rapid diagnostic test (RDT)", "PCR confirmation", "CBC", "LFTs"]
+      },
+      "treatment_guidelines": {
+        "p_falciparum": [
+          "Artemether or artesunate (IV for severe malaria)",
+          "Artemisinin-based combination therapy (ACT): artemether-lumefantrine"
+        ],
+        "p_vivax_ovale": [
+          "Chloroquine 600mg base x 3 days",
+          "Primaquine 30mg daily x 14 days (after G6PD screening)"
+        ]
+      },
+      "source": "WHO 2021, CDC 2020, ICMR 2021",
+      "confidence": 0.91
+    },
+    {
+      "condition_id": "dengue_fever",
+      "condition_name": "Dengue Fever",
+      "icd10": "A90",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_high",
+      "red_flags": ["hemorrhage", "shock", "severe abdominal pain"],
+      "diagnostic_criteria": {
+        "symptoms": "Sudden fever, myalgia, arthralgia, rash; progresses to dengue hemorrhagic fever in some",
+        "tests": ["NS1 antigen or IgM antibody", "CBC (thrombocytopenia)", "Platelet count < 100k warning sign"]
+      },
+      "treatment_guidelines": {
+        "supportive": [
+          "Acetaminophen for fever (avoid NSAIDs due to bleeding risk)",
+          "Oral rehydration",
+          "Monitor platelet count closely"
+        ],
+        "severe_dengue": [
+          "Hospitalization",
+          "IV fluid resuscitation",
+          "Transfusion if bleeding or platelet < 50k"
+        ]
+      },
+      "source": "WHO 2021, CDC 2020, ICMR 2020",
+      "confidence": 0.88
+    },
+    {
+      "condition_id": "covid19",
+      "condition_name": "COVID-19",
+      "icd10": "U07.1",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_critical",
+      "red_flags": ["respiratory distress", "low SpO2", "ARDS"],
+      "diagnostic_criteria": {
+        "symptoms": "Fever, cough, dyspnea, loss of taste/smell; asymptomatic to severe ARDS",
+        "tests": ["RT-PCR (gold standard)", "Antigen rapid test", "Chest X-ray", "D-dimer", "LDH"]
+      },
+      "treatment_guidelines": {
+        "mild": [
+          "Supportive care: rest, fluids",
+          "Acetaminophen for fever",
+          "No antivirals routinely"
+        ],
+        "moderate": [
+          "Oxygen to maintain SpO2 > 94%",
+          "Corticosteroids (dexamethasone 6mg daily)"
+        ],
+        "severe": [
+          "ICU admission",
+          "Mechanical ventilation if needed",
+          "Antivirals: remdesivir, paxlovid (early course)"
+        ]
+      },
+      "source": "WHO 2022, NIH 2022, ICMR 2022",
+      "confidence": 0.89
+    },
+    {
+      "condition_id": "hiv_aids",
+      "condition_name": "HIV/AIDS",
+      "icd10": "B20",
+      "countries": ["India", "US", "UK"],
+      "severity": "high",
+      "red_flags": ["CD4 < 200", "opportunistic infections", "wasting"],
+      "diagnostic_criteria": {
+        "symptoms": "Varies: asymptomatic to AIDS-defining illnesses; risk factors",
+        "tests": ["HIV antibody test (4th gen)", "HIV RNA (viral load)", "CD4 count"]
+      },
+      "treatment_guidelines": {
+        "antiretroviral": [
+          "Start ART regardless of CD4 count",
+          "First-line: 2 NRTIs + 1 INSTI (TDF+FTC+DTG or similar)",
+          "Target: undetectable viral load"
+        ],
+        "monitoring": "CD4 and viral load every 3 months initially; long-term annual screening for TB, malignancy"
+      },
+      "source": "DHHS 2022, BHIVA 2020, ICMR 2019",
+      "confidence": 0.87
+    }
+  ],
+  "musculoskeletal": [
+    {
+      "condition_id": "acute_lower_back_pain",
+      "condition_name": "Acute Lower Back Pain",
+      "icd10": "M54.5",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_moderate",
+      "red_flags": ["fever", "neurologic deficits", "trauma", "unexplained weight loss"],
+      "diagnostic_criteria": {
+        "symptoms": "Acute onset lower back pain; mechanism: mechanical, degenerative, radicular",
+        "tests": "Clinical exam; imaging (X-ray/MRI) only if red flags present"
+      },
+      "treatment_guidelines": {
+        "acute_phase": [
+          "Activity modification (avoid bed rest > 2 days)",
+          "NSAIDs (ibuprofen 400-800mg TID)",
+          "Muscle relaxants (cyclobenzaprine 5mg TID) if muscle spasm severe"
+        ],
+        "subacute": [
+          "Physical therapy",
+          "Epidural steroid injection if radiculopathy"
+        ]
+      },
+      "source": "ACP 2017, NICE 2016, ICMR 2018",
+      "confidence": 0.84
+    },
+    {
+      "condition_id": "osteoarthritis",
+      "condition_name": "Osteoarthritis (OA)",
+      "icd10": "M19",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_moderate",
+      "red_flags": ["acute severe swelling", "fever (septic arthritis concern)"],
+      "diagnostic_criteria": {
+        "symptoms": "Gradually progressive joint pain, stiffness (worse in morning), loss of range of motion",
+        "tests": ["X-ray (joint space narrowing, osteophytes)", "ESR/CRP (typically normal)"]
+      },
+      "treatment_guidelines": {
+        "first_line": [
+          "Weight loss if obese",
+          "Exercise and physical therapy",
+          "NSAIDs (ibuprofen, naproxen) for pain"
+        ],
+        "second_line": [
+          "Intra-articular corticosteroid injection (hyaluronic acid alternative)",
+          "Topical NSAIDs (diclofenac 3% gel)"
+        ],
+        "surgical": "Joint replacement if conservative management fails"
+      },
+      "source": "ACR 2020, NICE 2008, ICMR 2015",
+      "confidence": 0.85
+    }
+  ],
+  "psychiatric": [
+    {
+      "condition_id": "major_depression",
+      "condition_name": "Major Depressive Disorder (MDD)",
+      "icd10": "F32",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_high",
+      "red_flags": ["suicidal ideation", "psychotic features", "catatonia"],
+      "diagnostic_criteria": {
+        "symptoms": "≥5 symptoms for ≥2 weeks: depressed mood, loss of interest, sleep changes, guilt, fatigue, concentration issues, suicidality",
+        "tests": "Clinical diagnosis; rule out medical causes (thyroid, anemia, etc.)"
+      },
+      "treatment_guidelines": {
+        "pharmacologic": [
+          "SSRIs (sertraline 50-200mg, citalopram 20-40mg) - first line",
+          "SNRIs (venlafaxine) if SSRI ineffective",
+          "TCAs (amitriptyline) if others fail"
+        ],
+        "non_pharmacologic": [
+          "Psychotherapy: CBT, IPT",
+          "Lifestyle: exercise, sleep hygiene",
+          "Hospitalization if suicidal"
+        ]
+      },
+      "source": "APA DSM-5, NICE 2009, ICMR 2017",
+      "confidence": 0.86
+    },
+    {
+      "condition_id": "anxiety_disorder",
+      "condition_name": "Generalized Anxiety Disorder (GAD)",
+      "icd10": "F41.1",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_moderate",
+      "red_flags": ["panic attacks", "suicidal ideation"],
+      "diagnostic_criteria": {
+        "symptoms": "≥6 months of excessive worry about multiple aspects of daily life; affecting functioning",
+        "tests": "Clinical diagnosis; rule out medical causes"
+      },
+      "treatment_guidelines": {
+        "pharmacologic": [
+          "SSRIs (paroxetine, sertraline) - first line",
+          "Buspirone 15-30mg daily (less sedating alternative)"
+        ],
+        "psychotherapy": [
+          "CBT - gold standard",
+          "Relaxation techniques"
+        ]
+      },
+      "source": "APA DSM-5, NICE 2011, ICMR 2017",
+      "confidence": 0.82
+    }
+  ]
+}

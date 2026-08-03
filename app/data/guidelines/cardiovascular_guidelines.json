@@ -1,0 +1,139 @@
+{
+  "cardiovascular": [
+    {
+      "condition_id": "acute_coronary_syndrome",
+      "condition_name": "Acute Coronary Syndrome (ACS)",
+      "icd10": "I20.0",
+      "countries": ["India", "US", "UK"],
+      "severity": "critical",
+      "red_flags": ["chest pain", "sweating", "shortness of breath", "radiating pain to arm"],
+      "diagnostic_criteria": {
+        "symptoms": "Acute onset chest pain or discomfort, often radiating to left arm, neck, or jaw; associated with sweating, nausea, dyspnea",
+        "tests": ["ECG (12-lead)", "Troponin I/T", "Complete Blood Count", "Chest X-ray", "Coronary angiography"]
+      },
+      "differential_diagnosis": ["Myocardial Infarction", "Unstable Angina", "Pulmonary Embolism", "Aortic Dissection"],
+      "treatment_guidelines": {
+        "first_line": [
+          "Immediate cardiology consultation",
+          "Oxygen therapy if SpO2 < 94%",
+          "Aspirin 300-500mg (if not allergic)",
+          "P2Y12 inhibitor (clopidogrel 600mg or ticagrelor 180mg)",
+          "Beta-blocker (metoprolol or atenolol)",
+          "Statin (atorvastatin 80mg)",
+          "ACE inhibitor (lisinopril or ramipril)"
+        ],
+        "contraindications": ["Aspirin allergy", "Active bleeding"],
+        "monitoring": "Continuous cardiac monitoring, repeat troponin at 3 and 6 hours"
+      },
+      "country_specific": {
+        "India": {
+          "restricted_drugs": [],
+          "alternative_treatments": ["Aspirin alternative: Clopidogrel"]
+        },
+        "US": {
+          "restricted_drugs": [],
+          "alternative_treatments": []
+        },
+        "UK": {
+          "restricted_drugs": [],
+          "alternative_treatments": ["NICE recommends early invasive strategy"]
+        }
+      },
+      "source": "WHO 2021, NICE 2020, ICMR 2020",
+      "confidence": 0.95
+    },
+    {
+      "condition_id": "hypertension",
+      "condition_name": "Hypertension (High Blood Pressure)",
+      "icd10": "I10",
+      "countries": ["India", "US", "UK"],
+      "severity": "moderate",
+      "red_flags": ["severe headache", "vision changes", "chest pain with hypertension"],
+      "diagnostic_criteria": {
+        "symptoms": "Usually asymptomatic; may present with headache, dizziness, or vision changes in hypertensive crisis",
+        "tests": ["Blood pressure (>140/90 mmHg)", "Urinalysis", "Lipid profile", "Renal function", "ECG"]
+      },
+      "treatment_guidelines": {
+        "first_line": [
+          "Lifestyle modification (diet, exercise, salt reduction)",
+          "ACE inhibitor (lisinopril 10-40mg daily) OR ARB (losartan 50-100mg)",
+          "Calcium channel blocker (amlodipine 5-10mg)",
+          "Thiazide diuretic (hydrochlorothiazide 12.5-25mg)"
+        ],
+        "target_bp": "< 140/90 mmHg for most; < 130/80 for diabetes/CKD",
+        "monitoring": "Monitor BP weekly until controlled; reassess medications every 3 months"
+      },
+      "source": "WHO 2021, AHA/ACC 2017, ICMR 2019",
+      "confidence": 0.9
+    },
+    {
+      "condition_id": "heart_failure",
+      "condition_name": "Heart Failure (Congestive Heart Failure)",
+      "icd10": "I50",
+      "countries": ["India", "US", "UK"],
+      "severity": "high",
+      "red_flags": ["severe dyspnea", "orthopnea", "edema"],
+      "diagnostic_criteria": {
+        "symptoms": "Dyspnea on exertion, orthopnea, paroxysmal nocturnal dyspnea, fatigue, peripheral edema",
+        "tests": ["BNP/NT-proBNP", "Echocardiogram", "Chest X-ray", "ECG", "Complete metabolic panel"]
+      },
+      "treatment_guidelines": {
+        "first_line": [
+          "ACE inhibitor (enalapril, lisinopril) - cornerstone",
+          "Beta-blocker (carvedilol, metoprolol succinate)",
+          "Aldosterone antagonist (spironolactone)",
+          "Diuretics (furosemide) for fluid overload",
+          "SGLT2 inhibitor (dapagliflozin, empagliflozin)"
+        ],
+        "monitoring": "Serial echocardiography, BNP trends, renal function, electrolytes"
+      },
+      "source": "ACC/AHA 2022, ESC 2021, ICMR 2020",
+      "confidence": 0.92
+    },
+    {
+      "condition_id": "arrhythmia",
+      "condition_name": "Cardiac Arrhythmia",
+      "icd10": "I49",
+      "countries": ["India", "US", "UK"],
+      "severity": "moderate",
+      "red_flags": ["syncope", "severe palpitations", "chest pain"],
+      "diagnostic_criteria": {
+        "symptoms": "Palpitations, dizziness, syncope, chest discomfort, dyspnea",
+        "tests": ["ECG (12-lead)", "Holter monitor (24-48 hours)", "Echocardiogram", "Electrolytes", "TSH"]
+      },
+      "treatment_guidelines": {
+        "first_line": [
+          "Identify and treat underlying cause",
+          "Beta-blocker (metoprolol, atenolol) for rate control",
+          "Calcium channel blocker (verapamil, diltiazem) if beta-blockers contraindicated",
+          "Anticoagulation if atrial fibrillation (warfarin INR 2-3 or DOAC)"
+        ]
+      },
+      "source": "ACC/AHA 2019, ESC 2020",
+      "confidence": 0.88
+    },
+    {
+      "condition_id": "myocardial_infarction",
+      "condition_name": "Myocardial Infarction (Heart Attack)",
+      "icd10": "I21",
+      "countries": ["India", "US", "UK"],
+      "severity": "critical",
+      "red_flags": ["chest pain", "sweating", "dyspnea", "troponin elevation"],
+      "diagnostic_criteria": {
+        "symptoms": "Acute severe chest pain, diaphoresis, dyspnea, nausea; may be painless in elderly/diabetics",
+        "tests": ["Serial troponin (0, 3, 6 hours)", "ECG changes (ST elevation/depression)", "Echocardiogram", "Chest X-ray"]
+      },
+      "treatment_guidelines": {
+        "first_line": [
+          "Dual antiplatelet therapy: Aspirin 300-500mg + P2Y12 inhibitor",
+          "Beta-blocker early",
+          "ACE inhibitor",
+          "Statin (high-intensity)",
+          "Primary PCI within 90 minutes if STEMI"
+        ]
+      },
+      "source": "ACC/AHA 2021, ESC 2020",
+      "confidence": 0.96
+    }
+  ]
+}

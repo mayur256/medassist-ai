@@ -3,7 +3,8 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text, Index, Float
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, relationship, sessionmaker
 
@@ -56,6 +57,27 @@ class Message(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     conversation = relationship("Conversation", back_populates="messages")
+
+
+class GuidelineEmbedding(Base):
+    """Vector store for embedded clinical guidelines (RAG)."""
+    __tablename__ = "guideline_embeddings"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    condition_id = Column(String, nullable=False, index=True)
+    condition_name = Column(String, nullable=False)
+    category = Column(String, nullable=False, index=True)
+    countries = Column(ARRAY(String), nullable=False)  # Requires pgvector extension
+    content_chunk = Column(Text, nullable=False)
+    chunk_index = Column(String, nullable=False)  # diagnostic_criteria, treatment_guidelines, red_flags, etc.
+    embedding = Column(ARRAY(Float), nullable=False)  # vector(384) for all-MiniLM-L6-v2
+    metadata = Column(JSON, nullable=True)  # source, confidence, severity, etc.
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (
+        Index('ix_guideline_embeddings_category', 'category'),
+        Index('ix_guideline_embeddings_condition', 'condition_id'),
+    )
 
 
 async def init_db():

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from app.services.llm_service import query_llm_json
 from app.services.ner_service import format_timeline_for_prompt
+from app.services.rag_service import build_diagnosis_context
 
 if TYPE_CHECKING:
     from app.services.ner_service import SymptomEvent
@@ -20,12 +21,16 @@ Duration: {duration}
 Severity: {severity}
 {timeline_block}
 
+{guidelines_context}
+
 RULES:
 - Use the symptom timeline (onset, progression) to differentiate between conditions
 - A sudden onset suggests acute conditions; gradual onset suggests chronic
 - Worsening symptoms increase urgency; improving symptoms lower likelihood of serious pathology
 - Temporal ordering of symptoms helps narrow the differential
+- Ground your reasoning in the clinical guidelines provided above
 - For suggested tests, explain what each test would confirm or rule out
+- Prioritize conditions with higher confidence scores based on symptom alignment
 
 Respond with ONLY this JSON, nothing else:
 {{"diagnoses": [{{"condition": "name", "confidence": 0.7, "reasoning": "brief reason"}}], "suggested_tests": [{{"test": "test name", "reasoning": "what this test would confirm or rule out"}}]}}
@@ -47,25 +52,44 @@ async def generate_diagnoses(
     Returns dict with:
         - diagnoses: list of {condition, confidence, reasoning}
         - suggested_tests: list of {test, reasoning}
+        - guideline_citations: citations of guidelines used
     """
     timeline_block = format_timeline_for_prompt(timeline or [])
+    
+    # Fetch guideline context using RAG
+    country = patient.get("country")
+    known_conditions = patient.get("known_conditions", [])
+    
+    diagnosis_context = await build_diagnosis_context(
+        symptoms=symptoms,
+        patient_conditions=known_conditions,
+        country=country,
+    )
+    
+    guidelines_text = diagnosis_context.get("guidelines_text", "")
+    citations = diagnosis_context.get("citations", {})
 
     prompt = DIAGNOSIS_PROMPT.format(
         age=patient.get("age", "unknown"),
         gender=patient.get("gender", "unknown"),
-        country=patient.get("country", "unknown"),
-        conditions=", ".join(patient.get("known_conditions", [])) or "none",
+        country=country or "unknown",
+        conditions=", ".join(known_conditions) or "none",
         allergies=", ".join(patient.get("allergies", [])) or "none",
         symptoms=", ".join(symptoms) or "none reported",
         duration=duration or "not specified",
         severity=severity or "not specified",
         timeline_block=timeline_block,
+        guidelines_context=guidelines_text,
     )
 
     result = await query_llm_json(prompt)
 
     if not result or not isinstance(result, dict):
-        return {"diagnoses": [], "suggested_tests": []}
+        return {
+            "diagnoses": [],
+            "suggested_tests": [],
+            "guideline_citations": citations,
+        }
 
     # Validate diagnoses
     diagnoses = result.get("diagnoses", [])
@@ -88,4 +112,8 @@ async def generate_diagnoses(
                 "reasoning": str(t.get("reasoning", "")),
             })
 
-    return {"diagnoses": validated_diagnoses, "suggested_tests": validated_tests}
+    return {
+        "diagnoses": validated_diagnoses,
+        "suggested_tests": validated_tests,
+        "guideline_citations": citations,
+    }

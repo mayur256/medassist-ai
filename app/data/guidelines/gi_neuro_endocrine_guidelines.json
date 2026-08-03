@@ -1,0 +1,231 @@
+{
+  "gastrointestinal": [
+    {
+      "condition_id": "acute_gastroenteritis",
+      "condition_name": "Acute Gastroenteritis",
+      "icd10": "A09",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_moderate",
+      "red_flags": ["severe dehydration", "bloody stools", "severe abdominal pain"],
+      "diagnostic_criteria": {
+        "symptoms": "Acute diarrhea, vomiting, abdominal cramping, fever; viral vs. bacterial",
+        "tests": ["Stool culture if bloody", "Electrolytes if dehydrated", "CBC"]
+      },
+      "treatment_guidelines": {
+        "first_line": [
+          "Oral rehydration solution (WHO-ORS)",
+          "Zinc supplementation (10-20mg daily x 10-14 days) in children",
+          "Supportive care"
+        ],
+        "antibiotics": "Ciprofloxacin 500mg BID x 3-5 days if bacterial suspected (bloody stools, high fever)",
+        "antiemetics": "Ondansetron 8mg IV/oral if severe vomiting"
+      },
+      "source": "WHO 2017, CDC 2020, ICMR 2019",
+      "confidence": 0.87
+    },
+    {
+      "condition_id": "peptic_ulcer_disease",
+      "condition_name": "Peptic Ulcer Disease (PUD)",
+      "icd10": "K27",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_high",
+      "red_flags": ["hematemesis", "melena", "severe epigastric pain"],
+      "diagnostic_criteria": {
+        "symptoms": "Epigastric pain (relieved by food or antacids), nausea, bloating; risk factors: H. pylori, NSAIDs",
+        "tests": ["Upper endoscopy (gold standard)", "H. pylori serology or stool antigen", "CBC, LFTs"]
+      },
+      "treatment_guidelines": {
+        "uncomplicated": [
+          "PPI (omeprazole 20-40mg daily or pantoprazole 40mg daily) x 4-8 weeks",
+          "H. pylori eradication if positive: triple therapy (PPI + amoxicillin + clarithromycin) x 7-14 days"
+        ],
+        "complicated": [
+          "Refer for endoscopy ± intervention (banding, hemoclips)",
+          "IV PPI high-dose infusion"
+        ]
+      },
+      "source": "ASGE 2016, BSG 2017, ICMR 2018",
+      "confidence": 0.90
+    },
+    {
+      "condition_id": "appendicitis",
+      "condition_name": "Acute Appendicitis",
+      "icd10": "K35",
+      "countries": ["India", "US", "UK"],
+      "severity": "high",
+      "red_flags": ["severe RLQ pain", "fever", "peritoneal signs"],
+      "diagnostic_criteria": {
+        "symptoms": "RLQ pain (periumbilical → RLQ), fever, anorexia, nausea",
+        "tests": ["CT abdomen/pelvis (CT is gold standard)", "Ultrasound (first-line, especially in children)", "CBC (elevated WBC)", "Urinalysis (rule out UTI)"]
+      },
+      "treatment_guidelines": {
+        "surgical": "Appendectomy (laparoscopic preferred)",
+        "pre_op": [
+          "NPO",
+          "IV fluids",
+          "Broad-spectrum antibiotics (ceftriaxone + metronidazole)"
+        ]
+      },
+      "source": "ACS 2018, EAES 2018",
+      "confidence": 0.96
+    },
+    {
+      "condition_id": "inflammatory_bowel_disease",
+      "condition_name": "Inflammatory Bowel Disease (IBD)",
+      "icd10": "K51, K50",
+      "countries": ["India", "US", "UK"],
+      "severity": "moderate_to_high",
+      "red_flags": ["severe bloody diarrhea", "signs of toxic megacolon"],
+      "diagnostic_criteria": {
+        "symptoms": "Chronic diarrhea, bloody stools, abdominal pain, weight loss; flare-ups vs. remission",
+        "tests": ["Colonoscopy with biopsy", "Inflammatory markers (CRP, ESR)", "Fecal calprotectin", "CBC, albumin"]
+      },
+      "treatment_guidelines": {
+        "induction": [
+          "5-ASA compounds (mesalamine 2-3g daily)",
+          "Corticosteroids for active disease (prednisolone 40-50mg taper)",
+          "Antibiotics if infection suspected"
+        ],
+        "maintenance": [
+          "5-ASA compounds",
+          "Immunosuppressants (azathioprine) if steroid-dependent",
+          "Biologic agents (TNF-inhibitors: infliximab, adalimumab)"
+        ]
+      },
+      "source": "ECCO 2021, ACG 2020, ICMR 2019",
+      "confidence": 0.88
+    }
+  ],
+  "neurological": [
+    {
+      "condition_id": "acute_ischemic_stroke",
+      "condition_name": "Acute Ischemic Stroke",
+      "icd10": "I63",
+      "countries": ["India", "US", "UK"],
+      "severity": "critical",
+      "red_flags": ["sudden weakness", "speech difficulty", "facial drooping"],
+      "diagnostic_criteria": {
+        "symptoms": "Sudden onset focal neurologic deficits (weakness, aphasia, visual loss, ataxia); time of onset critical",
+        "tests": ["CT head (rule out hemorrhage)", "MRI with DWI/PWI (gold standard)", "ECG", "Troponin", "INR/PT", "Glucose"]
+      },
+      "treatment_guidelines": {
+        "thrombolytic": [
+          "IV alteplase (tPA) 0.9mg/kg within 4.5 hours of symptom onset",
+          "Thrombectomy if eligible (mechanical thrombectomy 0-24 hours in select patients)"
+        ],
+        "antiplatelet": [
+          "Aspirin 325mg daily started after thrombolysis",
+          "Clopidogrel if aspirin contraindicated"
+        ],
+        "post_acute": [
+          "Statin (atorvastatin 80mg)",
+          "Antihypertensive if SBP > 220",
+          "Rehabilitation"
+        ]
+      },
+      "source": "AHA/ASA 2019, ESO 2019, ICMR 2020",
+      "confidence": 0.94
+    },
+    {
+      "condition_id": "migraine",
+      "condition_name": "Migraine Headache",
+      "icd10": "G43",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild_to_moderate",
+      "red_flags": ["sudden severe headache", "fever", "stiff neck"],
+      "diagnostic_criteria": {
+        "symptoms": "Recurrent unilateral pulsating headache, photophobia, phonophobia, nausea, ± aura",
+        "tests": "Typically clinical diagnosis; neuroimaging if atypical features"
+      },
+      "treatment_guidelines": {
+        "abortive": [
+          "Triptans (sumatriptan 50-100mg) - first line",
+          "NSAIDs (ibuprofen 400-600mg) if triptan unavailable/contraindicated",
+          "Antiemetic (metoclopramide 10mg)"
+        ],
+        "preventive": [
+          "Beta-blocker (propranolol 40-80mg BID) - first line",
+          "Tricyclic antidepressant (amitriptyline 10-75mg daily)",
+          "Topiramate 50-200mg daily if beta-blockers ineffective"
+        ]
+      },
+      "source": "IHS 2018, AAN 2019, NICE 2012",
+      "confidence": 0.86
+    },
+    {
+      "condition_id": "seizure_disorder",
+      "condition_name": "Seizure Disorder / Epilepsy",
+      "icd10": "G40",
+      "countries": ["India", "US", "UK"],
+      "severity": "moderate_to_high",
+      "red_flags": ["status epilepticus", "recurrent seizures", "altered consciousness"],
+      "diagnostic_criteria": {
+        "symptoms": "Recurrent unprovoked seizures; type depends on seizure classification (generalized vs. focal)",
+        "tests": ["EEG (gold standard)", "MRI brain", "Metabolic panel", "Toxicology screen"]
+      },
+      "treatment_guidelines": {
+        "first_line_drugs": [
+          "Levetiracetam 500mg BID (broad spectrum, fewer interactions)",
+          "Lamotrigine 25-100mg daily",
+          "Valproic acid 500-1000mg daily (if first-line inadequate)"
+        ],
+        "acute_seizure": [
+          "Place in recovery position",
+          "Lorazepam 2-4mg IV for status epilepticus",
+          "Follow with fosphenytoin or valproic acid loading"
+        ]
+      },
+      "source": "ILAE 2017, AAN 2009, NICE 2012",
+      "confidence": 0.89
+    }
+  ],
+  "endocrine": [
+    {
+      "condition_id": "type2_diabetes",
+      "condition_name": "Type 2 Diabetes Mellitus",
+      "icd10": "E11",
+      "countries": ["India", "US", "UK"],
+      "severity": "moderate",
+      "red_flags": ["polyuria", "polydipsia", "extreme fatigue"],
+      "diagnostic_criteria": {
+        "symptoms": "Polyuria, polydipsia, fatigue, blurred vision; often asymptomatic at diagnosis",
+        "tests": ["Fasting glucose > 126 mg/dL", "HbA1c >= 6.5%", "Random glucose >= 200 mg/dL with symptoms"]
+      },
+      "treatment_guidelines": {
+        "first_line": [
+          "Metformin 500-2000mg daily (if eGFR > 30)",
+          "Lifestyle: diet, exercise, weight loss target 5-10%"
+        ],
+        "add_on": [
+          "GLP-1 agonist (semaglutide) if inadequate control",
+          "SGLT2 inhibitor (dapagliflozin) for CV/renal protection",
+          "Sulfonylurea (glibenclamide) if monotherapy insufficient"
+        ],
+        "monitoring": "HbA1c every 3 months until target (< 7% for most); annual kidney/eye screening"
+      },
+      "source": "ADA 2022, NICE 2015, ICMR 2018",
+      "confidence": 0.91
+    },
+    {
+      "condition_id": "hypothyroidism",
+      "condition_name": "Hypothyroidism",
+      "icd10": "E03",
+      "countries": ["India", "US", "UK"],
+      "severity": "mild",
+      "red_flags": ["severe bradycardia", "myxedema coma"],
+      "diagnostic_criteria": {
+        "symptoms": "Fatigue, weight gain, cold intolerance, constipation, dry skin, bradycardia",
+        "tests": ["TSH > 4.0 mIU/L (primary hypothyroidism)", "Free T4 low"]
+      },
+      "treatment_guidelines": {
+        "replacement": [
+          "Levothyroxine 25-100 mcg daily (start low, titrate every 6-8 weeks)",
+          "Target: TSH 0.5-2.5 mIU/L"
+        ],
+        "monitoring": "TSH and free T4 every 6-8 weeks until stable; then annually"
+      },
+      "source": "ATA 2012, NICE 2019, ICMR 2018",
+      "confidence": 0.93
+    }
+  ]
+}
