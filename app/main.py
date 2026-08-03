@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.db import Patient, async_session, init_db
 from app.models.request import DiagnoseRequest, FollowupRequest, PatientInfo
-from app.models.response import DiagnoseResponse, Diagnosis
+from app.models.response import DiagnoseResponse, Diagnosis, SuggestedTest
 from app.routes import conversations, patients
 from app.routes import admin as admin_routes
 
@@ -85,6 +85,9 @@ async def diagnose(request: DiagnoseRequest, _: str = Depends(verify_api_key)):
             follow_up_questions=result["follow_up_questions"],
             differential_diagnosis=[
                 Diagnosis(**d) for d in result["diagnoses"]
+            ],
+            suggested_tests=[
+                SuggestedTest(**t) for t in result.get("suggested_tests", [])
             ],
             treatment_options=result["treatments"],
             red_flags=result["red_flags"],

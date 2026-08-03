@@ -6,11 +6,11 @@ from langgraph.graph import END, StateGraph
 
 from app.config import settings
 from app.models.request import DiagnoseRequest
-from app.models.response import DiagnoseResponse, Diagnosis
+from app.models.response import DiagnoseResponse, Diagnosis, SuggestedTest
 from app.services.compliance_engine import apply_compliance
 from app.services.diagnosis_engine import generate_diagnoses
 from app.services.followup_engine import generate_followup
-from app.services.ner_service import extract_entities
+from app.services.ner_service import SymptomEvent, extract_entities, format_timeline_for_prompt
 from app.services.treatment_engine import generate_treatments
 
 
@@ -19,8 +19,10 @@ class GraphState(TypedDict):
     symptoms: list[str]
     duration: str | None
     severity: str | None
+    timeline: list[SymptomEvent]
     follow_up_questions: list[str]
     diagnoses: list[dict]
+    suggested_tests: list[dict]
     treatments: list[str]
     red_flags: list[str]
     urgency_score: int
@@ -38,6 +40,7 @@ def ner_node(state: GraphState) -> dict:
         "symptoms": result.symptoms,
         "duration": result.duration,
         "severity": result.severity,
+        "timeline": result.timeline,
     }
 
 
@@ -67,15 +70,20 @@ def should_diagnose(state: GraphState) -> str:
 
 
 async def diagnosis_node(state: GraphState) -> dict:
-    """Generate differential diagnoses."""
+    """Generate differential diagnoses with timeline context."""
     patient = state["request"].patient.model_dump()
-    diagnoses = await generate_diagnoses(
+    timeline = state.get("timeline", [])
+    result = await generate_diagnoses(
         symptoms=state["symptoms"],
         patient=patient,
         duration=state["duration"],
         severity=state["severity"],
+        timeline=timeline,
     )
-    return {"diagnoses": diagnoses}
+    return {
+        "diagnoses": result["diagnoses"],
+        "suggested_tests": result["suggested_tests"],
+    }
 
 
 async def treatment_node(state: GraphState) -> dict:
@@ -151,8 +159,10 @@ def _make_initial_state(request: DiagnoseRequest, additional_context: str = "") 
         "symptoms": [],
         "duration": None,
         "severity": None,
+        "timeline": [],
         "follow_up_questions": [],
         "diagnoses": [],
+        "suggested_tests": [],
         "treatments": [],
         "red_flags": [],
         "urgency_score": 1,
@@ -187,6 +197,7 @@ async def run_full(request: DiagnoseRequest, additional_context: str = "") -> Di
     return DiagnoseResponse(
         status="complete",
         differential_diagnosis=[Diagnosis(**d) for d in result["diagnoses"]],
+        suggested_tests=[SuggestedTest(**t) for t in result.get("suggested_tests", [])],
         treatment_options=result["treatments"],
         red_flags=result["red_flags"],
         urgency_score=result.get("urgency_score", 1),

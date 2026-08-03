@@ -33,9 +33,9 @@ class TestDiagnosisEngine:
             symptoms=["chest pain"],
             patient={"age": 45, "gender": "male", "country": "India"},
         )
-        assert len(result) == 2
-        assert result[0]["condition"] == "Angina"
-        assert result[0]["confidence"] == 0.8
+        assert len(result["diagnoses"]) == 2
+        assert result["diagnoses"][0]["condition"] == "Angina"
+        assert result["diagnoses"][0]["confidence"] == 0.8
 
     @pytest.mark.asyncio
     @patch("app.services.diagnosis_engine.query_llm_json")
@@ -44,7 +44,7 @@ class TestDiagnosisEngine:
             "diagnoses": [{"condition": "X", "confidence": 1.5, "reasoning": ""}]
         }
         result = await generate_diagnoses(symptoms=["pain"], patient={"age": 30})
-        assert result[0]["confidence"] == 1.0
+        assert result["diagnoses"][0]["confidence"] == 1.0
 
     @pytest.mark.asyncio
     @patch("app.services.diagnosis_engine.query_llm_json")
@@ -53,14 +53,14 @@ class TestDiagnosisEngine:
             "diagnoses": [{"condition": f"D{i}", "confidence": 0.5, "reasoning": ""} for i in range(8)]
         }
         result = await generate_diagnoses(symptoms=["pain"], patient={"age": 30})
-        assert len(result) <= 5
+        assert len(result["diagnoses"]) <= 5
 
     @pytest.mark.asyncio
     @patch("app.services.diagnosis_engine.query_llm_json")
     async def test_handles_llm_failure(self, mock_llm):
         mock_llm.return_value = None
         result = await generate_diagnoses(symptoms=["pain"], patient={"age": 30})
-        assert result == []
+        assert result == {"diagnoses": [], "suggested_tests": []}
 
 
 # --- Treatment Engine Tests ---

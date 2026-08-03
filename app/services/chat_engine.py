@@ -5,7 +5,7 @@ from app.db import Message, Patient
 from app.services.compliance_engine import apply_compliance
 from app.services.history_service import get_patient_history_summary
 from app.services.llm_service import query_llm_json
-from app.services.ner_service import extract_entities
+from app.services.ner_service import extract_entities, format_timeline_for_prompt
 
 FOLLOWUP_PROMPT = """You are a clinical decision support assistant. Be concise and decisive.
 
@@ -13,6 +13,7 @@ Patient: {age} year old {gender} from {country}
 Known conditions: {conditions}
 Allergies: {allergies}
 {patient_history_block}
+{timeline_block}
 Conversation so far:
 {history}
 
@@ -24,6 +25,7 @@ RULES:
 - NEVER repeat, rephrase, or ask a semantically similar question to one already asked above
 - If the patient says "no" to a question, accept it and move on
 - Only ask if critical information is truly missing to differentiate conditions
+- Consider the symptom timeline when forming questions (onset, progression matter for diagnosis)
 - Set confidence 0.0-1.0 based on how sufficient the gathered info is for diagnosis
 
 Respond with ONLY this JSON:
@@ -39,11 +41,13 @@ Patient: {age} year old {gender} from {country}
 Known conditions: {conditions}
 Allergies: {allergies}
 {patient_history_block}
+{timeline_block}
 Conversation so far:
 {history}
 
 RULES:
 - Provide a differential diagnosis based on ALL information gathered
+- Use the symptom timeline (onset, progression) to differentiate conditions
 - Include confidence levels and reasoning for each condition
 - Suggest relevant treatments (respecting allergies and known conditions)
 - Suggest relevant diagnostic tests
@@ -87,6 +91,11 @@ async def process_chat_message(patient: Patient, messages: list[Message], conver
     raw_text = latest_patient_msg.content if latest_patient_msg else ""
     ner_result = extract_entities(raw_text)
 
+    # Build timeline block from all patient messages for richer temporal context
+    all_patient_text = " ".join(m.content for m in messages if m.role == "patient")
+    full_ner = extract_entities(all_patient_text)
+    timeline_block = format_timeline_for_prompt(full_ner.timeline)
+
     # Fetch past consultation history for longitudinal context
     patient_history = await get_patient_history_summary(patient.id, exclude_conversation_id=conversation_id)
     history_block = f"Past consultations:\n{patient_history}" if patient_history else ""
@@ -98,6 +107,7 @@ async def process_chat_message(patient: Patient, messages: list[Message], conver
         conditions=", ".join(patient.known_conditions or []) or "none",
         allergies=", ".join(patient.allergies or []) or "none",
         patient_history_block=history_block,
+        timeline_block=timeline_block,
         history=history or "No messages yet",
     )
 

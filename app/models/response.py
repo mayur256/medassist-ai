@@ -11,6 +11,13 @@ class Diagnosis(BaseModel):
     reasoning: str
 
 
+class SuggestedTest(BaseModel):
+    """A recommended diagnostic test with clinical reasoning."""
+
+    test: str
+    reasoning: str
+
+
 class DiagnoseResponse(BaseModel):
     session_id: str | None = None
     status: str = "complete"  # "awaiting_followup" or "complete"
@@ -19,7 +26,7 @@ class DiagnoseResponse(BaseModel):
     urgency_rationale: str = ""
     follow_up_questions: list[str] = []
     differential_diagnosis: list[Diagnosis] = []
-    suggested_tests: list[str] = []
+    suggested_tests: list[SuggestedTest] = []
     treatment_options: list[str] = []
     red_flags: list[str] = []
     disclaimer: str = DISCLAIMER
