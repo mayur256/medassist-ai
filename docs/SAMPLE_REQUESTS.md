@@ -1,11 +1,65 @@
 # MedAssist-CDSS — Sample Request Bodies
 
+**Updated:** 2026-08-03  
+**Features:** Now includes suggested tests, urgency scoring, and patient history awareness
+
 ## Endpoint: `POST /diagnose`
 ## Header: `X-API-Key: <your-api-key>`
 
 ---
 
-## 1. Cardiac Symptoms (Male, 52, India)
+## Sample Response (Updated 2026-08-03)
+
+Shows new features: suggested_tests, urgency_score, urgency_rationale
+
+```json
+{
+  "status": "complete",
+  "confidence": 0.85,
+  "urgency_score": 4,
+  "urgency_rationale": "Severe chest pain with cardiac risk factors (age 52, diabetes, hypertension) and aspirin allergy requires urgent evaluation",
+  "differential_diagnosis": [
+    {
+      "condition": "Acute Coronary Syndrome (ACS)",
+      "confidence": 0.8,
+      "reasoning": "Classic presentation: severe substernal chest pain radiating to left arm with diaphoresis in a 52-year-old male with hypertension and diabetes"
+    },
+    {
+      "condition": "Myocardial Infarction (MI)",
+      "confidence": 0.75,
+      "reasoning": "Similar presentation; urgency of presentation and risk profile suggest need for immediate cardiac workup"
+    }
+  ],
+  "suggested_tests": [
+    {
+      "test": "ECG (12-lead)",
+      "reasoning": "First-line test to identify ST-segment elevation or T-wave changes indicating acute MI"
+    },
+    {
+      "test": "Troponin I/T",
+      "reasoning": "Specific cardiac biomarker for myocardial necrosis; elevated levels confirm MI"
+    },
+    {
+      "test": "Complete Blood Count (CBC)",
+      "reasoning": "Rule out infectious causes; assess for leukocytosis"
+    }
+  ],
+  "treatment_options": [
+    "Immediate cardiology consultation",
+    "Oxygen therapy if hypoxic",
+    "Nitroglycerin (sublingual)",
+    "Aspirin contraindicated (patient allergic) — consider clopidogrel or ticagrelor",
+    "IV access for emergency intervention if needed"
+  ],
+  "red_flags": ["chest pain", "difficulty breathing"],
+  "follow_up_questions": [],
+  "disclaimer": "This is AI-assisted output and must be verified by a licensed medical professional."
+}
+```
+
+---
+
+## Input Examples
 
 ```json
 {

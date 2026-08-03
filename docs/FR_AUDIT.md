@@ -1,9 +1,9 @@
 # FR Audit & Tracking Document
 # MedAssist-CDSS v1.0
 
-**Last Updated:** 2026-05-06  
-**Current Phase:** Phase 4 (Orchestration & Testing) ✅  
-**Overall Progress:** 22 / 22 FRs implemented
+**Last Updated:** 2026-08-03 (AUDITED & UPDATED)  
+**Current Phase:** Phase 4 (Orchestration & Testing) ✅ + Enhancements Phase 1-2 Complete  
+**Overall Progress:** 22 / 22 Core FRs + 7 / 12 Enhancements implemented
 
 ---
 
@@ -98,12 +98,15 @@
 
 | Date | Action | FRs Affected |
 |------|--------|--------------|
-| 2026-05-05 | Project scaffolding: pyproject.toml, config, directory structure | — (infrastructure only) |
-| 2026-05-06 | Core models (request.py, response.py), FastAPI app (main.py), API key auth, tests passing | FR-INPUT-001, FR-INPUT-002, FR-INPUT-003, FR-COMP-003, FR-OUT-001 |
-| 2026-05-06 | NER service, LLM service (local inference), Follow-up engine + 17 tests | FR-NER-001, FR-NER-002, FR-NER-003, FR-FOLLOWUP-001, FR-FOLLOWUP-002, FR-FOLLOWUP-003 |
+| 2026-08-03 | Audit review complete; verified all 22 core FRs; updated ENHANCEMENT_PROPOSAL.md with implementation status | (audit only) |
+| 2026-08-02 | Enhancements Phase 2 complete: Symptom timeline extraction, suggested tests with reasoning | Enh. #4, #5 |
+| 2026-08-02 | Enhancements Phase 1 complete: Confidence routing, urgency scoring, audit trail, session persistence | Enh. #3, #7, #11, #12 |
+| 2026-08-02 | Enhancement Phase 0 complete: Patient history & conversation memory | Enh. #1 |
+| 2026-05-06 | LangGraph orchestrator (NER→Followup→Diagnosis→Treatment→Compliance), wired to /diagnose, 8 integration tests | All core FRs (end-to-end) |
 | 2026-05-06 | Diagnosis engine, Treatment engine, Compliance engine + 20 tests | FR-DIAG-001/002/003, FR-TREAT-001/002/003, FR-COMP-001/002, FR-RED-001/002 |
-
-| 2026-05-06 | LangGraph orchestrator (NER→Followup→Diagnosis→Treatment→Compliance), wired to /diagnose, 8 integration tests | All FRs (end-to-end) |
+| 2026-05-06 | NER service, LLM service (local inference), Follow-up engine + 17 tests | FR-NER-001, FR-NER-002, FR-NER-003, FR-FOLLOWUP-001, FR-FOLLOWUP-002, FR-FOLLOWUP-003 |
+| 2026-05-06 | Core models (request.py, response.py), FastAPI app (main.py), API key auth, tests passing | FR-INPUT-001, FR-INPUT-002, FR-INPUT-003, FR-COMP-003, FR-OUT-001 |
+| 2026-05-05 | Project scaffolding: pyproject.toml, config, directory structure | — (infrastructure only) |
 
 ---
 

@@ -1,7 +1,47 @@
-# Implementation Plan
+# [HISTORICAL] Implementation Plan
 # MedAssist-CDSS v1.0
 
-## Project Structure
+**Status:** Historical artifact from May 2026  
+**Purpose:** Shows what was originally planned  
+**Current Reference:** See **[CURRENT_STATUS.md](./CURRENT_STATUS.md)** for actual implementation  
+
+---
+
+## What Actually Happened
+
+This plan has evolved significantly. Key divergences:
+
+**New Components Implemented:**
+- `app/services/history_service.py` — Patient history retrieval
+- `app/services/audit.py` — LLM call audit logging
+- `app/services/chat_engine.py` — Conversation management
+- `app/routes/conversations.py`, `patients.py`, `admin.py` — Full CRUD endpoints
+
+**Enhanced Components:**
+- `ner_service.py` → Added `SymptomEvent` dataclass with timeline extraction (13 regex patterns for onset/progression)
+- `diagnosis_engine.py` → Added `SuggestedTest` output with reasoning
+- `compliance_engine.py` → Added urgency scoring (1-5) and enhanced red flag detection
+- `followup_engine.py` → Added confidence scoring for routing
+
+**Database Expansion:**
+- Planned: `audit_logs` table
+- Actually implemented: `audit_logs`, `conversations`, `messages`, `sessions` tables
+- Added: Patient history queries, session persistence
+
+**Test Additions:**
+- `test_symptom_timeline.py` (new)
+- `test_suggested_tests.py` (new)
+- Total test count: 56+ (vs. planned ~40)
+
+**Enhancement Implementations:**
+- 7 of 12 proposed enhancements implemented ahead of Phase 4
+- Confidence routing, urgency scoring, audit trail all in Phase 1 (as planned)
+- Patient history added (originally Phase 2, completed Aug 2026)
+- Timeline and test reasoning (Phase 2, completed Aug 2026)
+
+---
+
+## Original Planned Structure (Preserved for Retrospective)
 
 ```
 medassist-ai/

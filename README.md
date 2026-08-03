@@ -1,3 +1,20 @@
+---
+
+## 📚 Documentation Guide
+
+**New to the project?** Start here:
+- 👉 **[docs/CURRENT_STATUS.md](docs/CURRENT_STATUS.md)** — What the system is NOW (architecture, APIs, features, tests)
+
+**Want historical context?**
+- 📋 **[docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** — [HISTORICAL] What was planned in May 2026 vs. what was built
+- 📊 **[docs/FR_AUDIT.md](docs/FR_AUDIT.md)** — Technical audit of all 22 core requirements + 7 enhancements
+- 🚀 **[docs/ENHANCEMENT_PROPOSAL.md](docs/ENHANCEMENT_PROPOSAL.md)** — Feature roadmap with 7/12 enhancements complete
+
+**For API examples:**
+- 🔌 **[docs/SAMPLE_REQUESTS.md](docs/SAMPLE_REQUESTS.md)** — Request/response examples with suggested tests
+
+---
+
 # 🧠 MedAssist-CDSS --- Software Requirements Specification (SRS)
 
 ## Version: 1.0
