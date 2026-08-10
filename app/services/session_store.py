@@ -18,7 +18,7 @@ class DiagnoseSession(Base):
 
     id = Column(String, primary_key=True)
     state_json = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
 @dataclass

@@ -44,8 +44,9 @@ class TestSuggestedTestModel:
 
 class TestDiagnosisEngineTests:
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_returns_suggested_tests(self, mock_llm):
+    async def test_returns_suggested_tests(self, mock_llm, mock_rag):
         mock_llm.return_value = {
             "diagnoses": [
                 {"condition": "Angina", "confidence": 0.8, "reasoning": "Chest pain in 45M with HTN"},
@@ -66,8 +67,9 @@ class TestDiagnosisEngineTests:
         assert "ischemia" in result["suggested_tests"][0]["reasoning"]
 
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_max_5_tests(self, mock_llm):
+    async def test_max_5_tests(self, mock_llm, mock_rag):
         mock_llm.return_value = {
             "diagnoses": [{"condition": "X", "confidence": 0.5, "reasoning": ""}],
             "suggested_tests": [
@@ -78,8 +80,9 @@ class TestDiagnosisEngineTests:
         assert len(result["suggested_tests"]) <= 5
 
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_handles_missing_tests_key(self, mock_llm):
+    async def test_handles_missing_tests_key(self, mock_llm, mock_rag):
         """LLM response with no suggested_tests key returns empty list."""
         mock_llm.return_value = {
             "diagnoses": [{"condition": "Angina", "confidence": 0.8, "reasoning": "Chest pain"}],
@@ -92,8 +95,9 @@ class TestDiagnosisEngineTests:
         assert len(result["diagnoses"]) == 1
 
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_handles_malformed_test_entries(self, mock_llm):
+    async def test_handles_malformed_test_entries(self, mock_llm, mock_rag):
         """Invalid test entries (missing 'test' key) are skipped."""
         mock_llm.return_value = {
             "diagnoses": [{"condition": "X", "confidence": 0.5, "reasoning": ""}],
@@ -110,8 +114,9 @@ class TestDiagnosisEngineTests:
         assert result["suggested_tests"][1]["test"] == "CBC"
 
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_missing_reasoning_defaults_empty(self, mock_llm):
+    async def test_missing_reasoning_defaults_empty(self, mock_llm, mock_rag):
         """Test entry without reasoning gets empty string."""
         mock_llm.return_value = {
             "diagnoses": [{"condition": "X", "confidence": 0.5, "reasoning": ""}],
@@ -134,11 +139,13 @@ def _mock_ner(text):
 
 class TestSuggestedTestsAPI:
     @pytest.mark.asyncio
+    @patch("app.services.treatment_engine.build_treatment_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.orchestrator.graph.extract_entities", side_effect=_mock_ner)
     @patch("app.services.followup_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.diagnosis_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.treatment_engine.query_llm_json", new_callable=AsyncMock)
-    async def test_high_confidence_includes_tests(self, mock_treat, mock_diag, mock_followup, mock_ner):
+    async def test_high_confidence_includes_tests(self, mock_treat, mock_diag, mock_followup, mock_ner, mock_diag_rag, mock_treat_rag):
         """When diagnosis is returned immediately, suggested_tests are included."""
         mock_followup.return_value = {
             "questions": [],
@@ -168,6 +175,8 @@ class TestSuggestedTestsAPI:
         assert data["suggested_tests"][1]["test"] == "Troponin I"
 
     @pytest.mark.asyncio
+    @patch("app.services.treatment_engine.build_treatment_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.session_store.delete_session", new_callable=AsyncMock)
     @patch("app.services.session_store.get_session", new_callable=AsyncMock)
     @patch("app.services.session_store.save_session", new_callable=AsyncMock)
@@ -176,7 +185,7 @@ class TestSuggestedTestsAPI:
     @patch("app.services.diagnosis_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.treatment_engine.query_llm_json", new_callable=AsyncMock)
     async def test_followup_flow_includes_tests(
-        self, mock_treat, mock_diag, mock_followup, mock_ner, mock_save, mock_get, mock_del
+        self, mock_treat, mock_diag, mock_followup, mock_ner, mock_save, mock_get, mock_del, mock_diag_rag, mock_treat_rag
     ):
         """Full follow-up flow returns suggested_tests with reasoning."""
         mock_followup.return_value = {"questions": ["Is pain worse with exertion?"], "confidence": 0.4}
@@ -227,11 +236,13 @@ class TestSuggestedTestsAPI:
         assert "ischemia" in data["suggested_tests"][0]["reasoning"]
 
     @pytest.mark.asyncio
+    @patch("app.services.treatment_engine.build_treatment_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.orchestrator.graph.extract_entities", side_effect=_mock_ner)
     @patch("app.services.followup_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.diagnosis_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.treatment_engine.query_llm_json", new_callable=AsyncMock)
-    async def test_empty_tests_when_llm_omits(self, mock_treat, mock_diag, mock_followup, mock_ner):
+    async def test_empty_tests_when_llm_omits(self, mock_treat, mock_diag, mock_followup, mock_ner, mock_diag_rag, mock_treat_rag):
         """When LLM response has no suggested_tests, API returns empty list."""
         mock_followup.return_value = {"questions": [], "confidence": 0.9}
         mock_diag.return_value = {

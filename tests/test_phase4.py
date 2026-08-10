@@ -55,6 +55,8 @@ class TestInitialDiagnose:
 
 class TestFollowup:
     @pytest.mark.asyncio
+    @patch("app.services.treatment_engine.build_treatment_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.session_store.delete_session", new_callable=AsyncMock)
     @patch("app.services.session_store.get_session", new_callable=AsyncMock)
     @patch("app.services.session_store.save_session", new_callable=AsyncMock)
@@ -62,7 +64,7 @@ class TestFollowup:
     @patch("app.services.followup_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.diagnosis_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.treatment_engine.query_llm_json", new_callable=AsyncMock)
-    async def test_full_flow(self, mock_treat, mock_diag, mock_followup, mock_ner, mock_save, mock_get, mock_del):
+    async def test_full_flow(self, mock_treat, mock_diag, mock_followup, mock_ner, mock_save, mock_get, mock_del, mock_diag_rag, mock_treat_rag):
         mock_followup.return_value = {"questions": ["Is pain worse with exertion?"], "confidence": 0.4}
         mock_diag.return_value = {
             "diagnoses": [{"condition": "Angina", "confidence": 0.8, "reasoning": "Chest pain in 45M with HTN"}]

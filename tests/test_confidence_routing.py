@@ -31,11 +31,13 @@ class TestConfidenceRouting:
     """Test that confidence >= threshold triggers immediate diagnosis."""
 
     @pytest.mark.asyncio
+    @patch("app.services.treatment_engine.build_treatment_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.orchestrator.graph.extract_entities", side_effect=_mock_ner)
     @patch("app.services.followup_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.diagnosis_engine.query_llm_json", new_callable=AsyncMock)
     @patch("app.services.treatment_engine.query_llm_json", new_callable=AsyncMock)
-    async def test_high_confidence_skips_followup(self, mock_treat, mock_diag, mock_followup, mock_ner):
+    async def test_high_confidence_skips_followup(self, mock_treat, mock_diag, mock_followup, mock_ner, mock_diag_rag, mock_treat_rag):
         """When LLM reports confidence >= 0.7, system skips follow-up and diagnoses immediately."""
         mock_followup.return_value = {
             "questions": [],

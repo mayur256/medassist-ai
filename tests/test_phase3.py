@@ -21,8 +21,9 @@ from app.services.compliance_engine import (
 
 class TestDiagnosisEngine:
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_returns_diagnoses(self, mock_llm):
+    async def test_returns_diagnoses(self, mock_llm, mock_rag):
         mock_llm.return_value = {
             "diagnoses": [
                 {"condition": "Angina", "confidence": 0.8, "reasoning": "Chest pain in 45M"},
@@ -38,8 +39,9 @@ class TestDiagnosisEngine:
         assert result["diagnoses"][0]["confidence"] == 0.8
 
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_clamps_confidence(self, mock_llm):
+    async def test_clamps_confidence(self, mock_llm, mock_rag):
         mock_llm.return_value = {
             "diagnoses": [{"condition": "X", "confidence": 1.5, "reasoning": ""}]
         }
@@ -47,8 +49,9 @@ class TestDiagnosisEngine:
         assert result["diagnoses"][0]["confidence"] == 1.0
 
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_max_5_diagnoses(self, mock_llm):
+    async def test_max_5_diagnoses(self, mock_llm, mock_rag):
         mock_llm.return_value = {
             "diagnoses": [{"condition": f"D{i}", "confidence": 0.5, "reasoning": ""} for i in range(8)]
         }
@@ -56,11 +59,13 @@ class TestDiagnosisEngine:
         assert len(result["diagnoses"]) <= 5
 
     @pytest.mark.asyncio
+    @patch("app.services.diagnosis_engine.build_diagnosis_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.diagnosis_engine.query_llm_json")
-    async def test_handles_llm_failure(self, mock_llm):
+    async def test_handles_llm_failure(self, mock_llm, mock_rag):
         mock_llm.return_value = None
         result = await generate_diagnoses(symptoms=["pain"], patient={"age": 30})
-        assert result == {"diagnoses": [], "suggested_tests": []}
+        assert result["diagnoses"] == []
+        assert result["suggested_tests"] == []
 
 
 # --- Treatment Engine Tests ---
@@ -94,37 +99,40 @@ class TestTreatmentAllergyFilter:
 
 class TestTreatmentEngine:
     @pytest.mark.asyncio
+    @patch("app.services.treatment_engine.build_treatment_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.treatment_engine.query_llm_json")
-    async def test_returns_treatments(self, mock_llm):
+    async def test_returns_treatments(self, mock_llm, mock_rag):
         mock_llm.return_value = {"treatments": ["Rest", "Analgesics", "Physical therapy"]}
         result = await generate_treatments(
             diagnoses=[{"condition": "Back pain"}],
             patient={"age": 35, "gender": "male", "country": "US", "allergies": []},
         )
-        assert "Rest" in result
-        assert len(result) == 3
+        assert "Rest" in result["treatments"]
+        assert len(result["treatments"]) == 3
 
     @pytest.mark.asyncio
+    @patch("app.services.treatment_engine.build_treatment_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.treatment_engine.query_llm_json")
-    async def test_filters_dosage_from_llm(self, mock_llm):
+    async def test_filters_dosage_from_llm(self, mock_llm, mock_rag):
         mock_llm.return_value = {"treatments": ["Rest", "Take 500mg paracetamol twice daily"]}
         result = await generate_treatments(
             diagnoses=[{"condition": "Headache"}],
             patient={"age": 30, "gender": "female", "country": "UK", "allergies": []},
         )
-        assert len(result) == 1
-        assert "Rest" in result
+        assert len(result["treatments"]) == 1
+        assert "Rest" in result["treatments"]
 
     @pytest.mark.asyncio
+    @patch("app.services.treatment_engine.build_treatment_context", new_callable=AsyncMock, return_value={"guidelines_text": "", "citations": {}})
     @patch("app.services.treatment_engine.query_llm_json")
-    async def test_filters_allergies(self, mock_llm):
+    async def test_filters_allergies(self, mock_llm, mock_rag):
         mock_llm.return_value = {"treatments": ["Penicillin-based antibiotics", "Rest"]}
         result = await generate_treatments(
             diagnoses=[{"condition": "Infection"}],
             patient={"age": 40, "gender": "male", "country": "India", "allergies": ["penicillin"]},
         )
-        assert "Rest" in result
-        assert len(result) == 1
+        assert "Rest" in result["treatments"]
+        assert len(result["treatments"]) == 1
 
 
 # --- Compliance Engine Tests ---

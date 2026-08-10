@@ -88,7 +88,7 @@ async def seed_vector_store():
                                 content_chunk=chunk["content"],
                                 chunk_index=chunk["chunk_type"],
                                 embedding=embedding,
-                                metadata={
+                                metadata_={
                                     "severity": severity,
                                     "source": source,
                                     "confidence": confidence,

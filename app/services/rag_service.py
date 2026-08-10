@@ -222,38 +222,46 @@ async def build_diagnosis_context(
     """
     logger.info(f"Building diagnosis context for symptoms: {symptoms}")
     
-    # Retrieve guidelines based on symptoms
-    symptom_guidelines = await retrieve_guidelines_for_symptoms(
-        symptoms=symptoms,
-        country=country,
-        k=10,
-    )
-    
-    # Also retrieve based on known conditions (for context)
-    condition_guidelines = []
-    for condition in patient_conditions:
-        cond_guidelines = await retrieve_guidelines_for_condition(
-            condition=condition,
+    try:
+        # Retrieve guidelines based on symptoms
+        symptom_guidelines = await retrieve_guidelines_for_symptoms(
+            symptoms=symptoms,
             country=country,
-            k=2,
+            k=10,
         )
-        condition_guidelines.extend(cond_guidelines)
-    
-    # Combine and deduplicate
-    all_guidelines = []
-    seen_content = set()
-    
-    for guideline in symptom_guidelines + condition_guidelines:
-        content = guideline.get("content", "")
-        if content not in seen_content:
-            all_guidelines.append(guideline)
-            seen_content.add(content)
-    
-    return {
-        "guidelines_text": format_guidelines_for_prompt(all_guidelines),
-        "citations": format_citations(all_guidelines),
-        "guideline_count": len(all_guidelines),
-    }
+        
+        # Also retrieve based on known conditions (for context)
+        condition_guidelines = []
+        for condition in patient_conditions:
+            cond_guidelines = await retrieve_guidelines_for_condition(
+                condition=condition,
+                country=country,
+                k=2,
+            )
+            condition_guidelines.extend(cond_guidelines)
+        
+        # Combine and deduplicate
+        all_guidelines = []
+        seen_content = set()
+        
+        for guideline in symptom_guidelines + condition_guidelines:
+            content = guideline.get("content", "")
+            if content not in seen_content:
+                all_guidelines.append(guideline)
+                seen_content.add(content)
+        
+        return {
+            "guidelines_text": format_guidelines_for_prompt(all_guidelines),
+            "citations": format_citations(all_guidelines),
+            "guideline_count": len(all_guidelines),
+        }
+    except Exception as e:
+        logger.warning(f"RAG retrieval failed (degrading gracefully): {e}")
+        return {
+            "guidelines_text": "",
+            "citations": {},
+            "guideline_count": 0,
+        }
 
 
 async def build_treatment_context(
@@ -274,30 +282,38 @@ async def build_treatment_context(
     """
     logger.info(f"Building treatment context for diagnoses: {[d.get('condition') for d in diagnoses]}")
     
-    # Retrieve treatment guidelines
-    guidelines = await retrieve_guidelines_for_treatment(
-        diagnoses=diagnoses,
-        country=country,
-        k=10,
-    )
-    
-    # Filter out any guidelines mentioning patient allergies
-    if patient_allergies:
-        filtered_guidelines = []
-        for guideline in guidelines:
-            content = guideline.get("content", "").lower()
-            allergy_mentioned = any(
-                allergy.lower() in content for allergy in patient_allergies
-            )
-            if not allergy_mentioned:
-                filtered_guidelines.append(guideline)
-        guidelines = filtered_guidelines
-    
-    return {
-        "guidelines_text": format_guidelines_for_prompt(guidelines),
-        "citations": format_citations(guidelines),
-        "guideline_count": len(guidelines),
-    }
+    try:
+        # Retrieve treatment guidelines
+        guidelines = await retrieve_guidelines_for_treatment(
+            diagnoses=diagnoses,
+            country=country,
+            k=10,
+        )
+        
+        # Filter out any guidelines mentioning patient allergies
+        if patient_allergies:
+            filtered_guidelines = []
+            for guideline in guidelines:
+                content = guideline.get("content", "").lower()
+                allergy_mentioned = any(
+                    allergy.lower() in content for allergy in patient_allergies
+                )
+                if not allergy_mentioned:
+                    filtered_guidelines.append(guideline)
+            guidelines = filtered_guidelines
+        
+        return {
+            "guidelines_text": format_guidelines_for_prompt(guidelines),
+            "citations": format_citations(guidelines),
+            "guideline_count": len(guidelines),
+        }
+    except Exception as e:
+        logger.warning(f"RAG retrieval failed (degrading gracefully): {e}")
+        return {
+            "guidelines_text": "",
+            "citations": {},
+            "guideline_count": 0,
+        }
 
 
 async def build_red_flag_context(

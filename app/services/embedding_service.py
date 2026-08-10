@@ -202,8 +202,8 @@ async def retrieve_relevant_guidelines(
                 "category": emb.category,
                 "content": emb.content_chunk,
                 "chunk_type": emb.chunk_index,
-                "metadata": emb.metadata,
-                "source": emb.metadata.get("source", "") if emb.metadata else "",
+                "metadata": emb.metadata_,
+                "source": emb.metadata_.get("source", "") if emb.metadata_ else "",
             })
         
         return results
@@ -237,7 +237,7 @@ async def get_condition_guidelines(condition_id: str, country: Optional[str] = N
             
             guidelines["chunks"][chunk_type].append({
                 "content": embedding.content_chunk,
-                "metadata": embedding.metadata,
+                "metadata": embedding.metadata_,
             })
         
         return guidelines

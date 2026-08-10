@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text, Index, Float
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text, Float
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, relationship, sessionmaker
@@ -71,13 +71,8 @@ class GuidelineEmbedding(Base):
     content_chunk = Column(Text, nullable=False)
     chunk_index = Column(String, nullable=False)  # diagnostic_criteria, treatment_guidelines, red_flags, etc.
     embedding = Column(ARRAY(Float), nullable=False)  # vector(384) for all-MiniLM-L6-v2
-    metadata = Column(JSON, nullable=True)  # source, confidence, severity, etc.
+    metadata_ = Column("metadata", JSON, nullable=True)  # source, confidence, severity, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
-    
-    __table_args__ = (
-        Index('ix_guideline_embeddings_category', 'category'),
-        Index('ix_guideline_embeddings_condition', 'condition_id'),
-    )
 
 
 async def init_db():
