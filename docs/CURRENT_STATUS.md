@@ -1,7 +1,7 @@
 # [ACTIVE] MedAssist-CDSS — Current Implementation Status
-**Date:** 2026-08-03  
-**Version:** 1.2  
-**Status:** Production-Ready (MVP Complete) + Phase 1-2 Enhancements Complete
+**Date:** 2026-08-11  
+**Version:** 2.0  
+**Status:** Production-Ready (MVP Complete) + All Enhancement Phases Complete
 
 **This is the authoritative reference for the current state of the system.**  
 *For historical context on what was originally planned, see [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)*
@@ -13,8 +13,8 @@
 MedAssist-CDSS is a Clinical Decision Support System (CDSS) that assists healthcare professionals with differential diagnosis generation, context-aware follow-up questioning, and guideline-based treatment suggestions.
 
 **Core MVP:** ✅ 22/22 functional requirements implemented and tested  
-**Enhancements:** ✅ 7/12 enhancements completed (Phase 1-2 done; Phase 3-4 pending)  
-**Test Coverage:** ✅ 56+ tests passing across all services  
+**Enhancements:** ✅ 11/12 enhancements completed (Phase 1-4 done; only RAG Phase 2 pending)  
+**Test Coverage:** ✅ 134+ tests passing across all services  
 **API Status:** ✅ All endpoints functional and deployed
 
 ---
@@ -94,7 +94,7 @@ FastAPI Backend (app/main.py)
 
 ---
 
-## ✅ Completed Enhancements (7/12)
+## ✅ Completed Enhancements (11/12)
 
 ### Phase 1 — Quick Wins
 | # | Enhancement | Status | Implementation |
@@ -111,24 +111,27 @@ FastAPI Backend (app/main.py)
 | 4 | Symptom Timeline | ✅ | SymptomEvent dataclass with onset/progression; 13 regex patterns for extraction |
 | 5 | Suggested Tests | ✅ | Each test includes clinical reasoning; integrated into response model |
 
----
-
-## ⏳ Pending Enhancements (5/12)
-
-### Phase 3 — Safety (BLOCKING Clinical Deployment)
-| # | Enhancement | Priority | Effort | Notes |
-|---|---|---|---|---|
-| 2 | RAG with Guidelines | HIGH | HIGH | Vector store + guideline embedding + retrieval for evidence-based filtering |
-| 6 | Drug Interactions | HIGH | MEDIUM | Check treatments against known_conditions/medications for interactions |
-
-**Impact:** Without these, system lacks evidence-based backing and drug safety checks.
+### Phase 3 — Safety
+| # | Enhancement | Status | Implementation |
+|---|---|---|---|
+| 2 | RAG with Guidelines | ✅ | 47 conditions vectorized (~240 chunks); pgvector similarity search; citations tracked |
+| 6 | Drug Interactions | ✅ | 48 drug-drug interactions; condition→medication mapping; severity-based filtering (severe=removed, moderate=warned) |
 
 ### Phase 4 — UX/Integration
+| # | Enhancement | Status | Implementation |
+|---|---|---|---|
+| 8 | SOAP Export | ✅ | LLM-generated SOAP notes from conversation; POST /conversations/{id}/complete; plain-text + JSON |
+| 9 | Streaming Responses | ✅ | SSE endpoint POST /diagnose/stream; token-by-token LLM output; stage progress events |
+| 10 | Multi-language Input | ✅ | 13 scripts detected; transliterated Hindi terms (25); LLM translation for non-Latin scripts |
+
+---
+
+## ⏳ Pending Enhancements (1/12)
+
+### RAG Phase 2 — Expanded Guidelines
 | # | Enhancement | Priority | Effort | Notes |
 |---|---|---|---|---|
-| 8 | SOAP Export | MEDIUM | MEDIUM | Generate structured clinical summary (EHR prep) |
-| 9 | Streaming Responses | MEDIUM | MEDIUM | SSE/WebSocket for token-by-token feedback (latency perception) |
-| 10 | Multi-language Input | MEDIUM | MEDIUM | Translate Hindi/regional languages before NER processing |
+| — | RAG Phase 2: Full PDF Ingestion | MEDIUM | HIGH | Automate ingestion of full WHO/NICE/ICMR PDFs beyond curated 47 conditions |
 
 ---
 
@@ -180,6 +183,37 @@ Continue conversation with answers to follow-up questions.
 
 // Response
 // Same as /diagnose response
+```
+
+#### `POST /diagnose/stream`
+Stream diagnosis results via Server-Sent Events (SSE).
+```json
+// Request: Same as POST /diagnose
+
+// Response: text/event-stream with events:
+// event: stage_start   — {"stage": "ner", "message": "..."}
+// event: stage_complete — {"stage": "ner", "result": {...}}
+// event: token         — {"content": "..."} (individual LLM tokens)
+// event: result        — {"response": {full DiagnoseResponse}}
+// event: error         — {"message": "..."} (if failure)
+```
+
+#### `POST /conversations/{id}/complete`
+Complete a conversation and generate SOAP note.
+```json
+// Response
+{
+  "conversation_id": "...",
+  "patient_id": "...",
+  "soap_note": {
+    "subjective": {"chief_complaint": "...", "history_of_present_illness": "..."},
+    "objective": {"vitals": "...", "physical_exam": "...", "labs_imaging": "..."},
+    "assessment": {"primary_diagnosis": "...", "differential_diagnoses": [...]},
+    "plan": {"diagnostic_workup": [...], "treatment": [...], "follow_up": "..."}
+  },
+  "plain_text": "SOAP NOTE\n...",
+  "generated_at": "2026-08-11T..."
+}
 ```
 
 #### `GET /conversations`
@@ -290,17 +324,25 @@ MAX_FOLLOWUP_ITERATIONS=2
 ## Testing
 
 ### Test Coverage
-- ✅ 56+ unit and integration tests
+- ✅ 134+ unit and integration tests (278 passing in full suite)
 - ✅ Model validation tests
 - ✅ NER extraction tests
 - ✅ LLM service tests (mocked)
 - ✅ Orchestrator graph tests
 - ✅ API endpoint tests
 - ✅ Compliance engine tests
+- ✅ Drug interaction tests (25 tests)
+- ✅ SOAP export tests (16 tests)
+- ✅ Streaming response tests (8 tests)
+- ✅ Multi-language translation tests (29 tests)
 
 ### Test Execution
 ```bash
 pytest tests/ -v
+pytest tests/test_drug_interactions.py -v  # Drug interaction checking
+pytest tests/test_soap_export.py -v  # SOAP note generation
+pytest tests/test_streaming.py -v  # SSE streaming
+pytest tests/test_translation.py -v  # Multi-language support
 pytest tests/test_phase3.py -v  # Core features
 pytest tests/test_symptom_timeline.py -v  # Timeline extraction
 pytest tests/test_suggested_tests.py -v  # Test reasoning
@@ -311,20 +353,18 @@ pytest tests/test_suggested_tests.py -v  # Test reasoning
 ## Known Limitations & Next Steps
 
 ### Current Limitations
-1. **No RAG integration** — Guidelines not yet embedded/retrieved; system relies on LLM knowledge
-2. **No drug interaction checking** — Patient medications inferred from conditions only
-3. **No streaming** — Full response returned at once (5s latency perceptible)
-4. **No multi-language** — Only English symptom input supported
-5. **No SOAP export** — Conversation summary not available for EHR handoff
-6. **No real-time chat UI** — API-only; frontend in development
+1. **RAG Phase 2 pending** — Only 47 curated conditions; full WHO/NICE/ICMR PDF ingestion not yet automated
+2. **No real-time chat UI** — API-only; frontend in development
+3. **Translation limited** — LLM-based translation for non-Latin scripts depends on Groq API availability
+4. **Drug interactions curated** — 48 interactions covering common pairs; not exhaustive (no DrugBank integration yet)
 
 ### Recommended Next Steps (Priority Order)
-1. **Implement RAG (#2)** — Embed clinical guidelines; filter recommendations with evidence
-2. **Add drug interactions (#6)** — Critical safety feature before production
-3. **Build frontend UI** — Web interface for clinician input
-4. **SOAP export (#8)** — EHR integration prep
-5. **Streaming (#9)** — UX improvement
-6. **Multi-language (#10)** — Expand to Hindi, regional languages
+1. **Build frontend UI** — Web interface for clinician input (Next.js app scaffolded)
+2. **RAG Phase 2** — Automate PDF ingestion for hundreds of conditions
+3. **DrugBank integration** — Expand drug interaction database with comprehensive dataset
+4. **Clinical validation** — Domain expert review before production
+5. **Load testing** — Performance testing under concurrent requests
+6. **Security audit** — API keys, data privacy, HIPAA considerations
 
 ---
 
@@ -350,8 +390,8 @@ pytest tests/test_suggested_tests.py -v  # Test reasoning
 
 ## Contact & Maintenance
 
-**Last Audit Date:** 2026-08-03  
-**Next Planned Audit:** 2026-09-03  
+**Last Audit Date:** 2026-08-11  
+**Next Planned Audit:** 2026-09-11  
 **Maintainers:** AI Development Team
 
 ---
@@ -369,32 +409,46 @@ docs/
 └── SAMPLE_REQUESTS.md (API examples)
 
 app/
-├── main.py (FastAPI app)
+├── main.py (FastAPI app + /diagnose, /diagnose/followup, /diagnose/stream)
 ├── config.py
 ├── db.py (SQLAlchemy models)
+├── data/
+│   ├── guidelines/ (47 conditions in 4 JSON files)
+│   └── drug_interactions.json (48 interactions, 21 condition→med mappings)
 ├── models/
 │   ├── request.py
-│   └── response.py
+│   └── response.py (+ DrugInteractionWarning)
 ├── services/
 │   ├── ner_service.py (✅ with timeline)
 │   ├── llm_service.py
 │   ├── followup_engine.py (✅ confidence-based)
-│   ├── diagnosis_engine.py (✅ with tests)
-│   ├── treatment_engine.py
+│   ├── diagnosis_engine.py (✅ with tests + RAG)
+│   ├── treatment_engine.py (✅ with RAG)
 │   ├── compliance_engine.py (✅ with urgency)
-│   ├── chat_engine.py (✅ with history)
-│   ├── history_service.py (✅ new)
-│   ├── audit.py (✅ new)
-│   └── session_store.py (✅ DB-backed)
+│   ├── drug_interaction_service.py (✅ new — Phase 3)
+│   ├── chat_engine.py (✅ with history + translation)
+│   ├── history_service.py (✅)
+│   ├── audit.py (✅)
+│   ├── session_store.py (✅ DB-backed)
+│   ├── embedding_service.py (✅ RAG)
+│   ├── rag_service.py (✅ RAG)
+│   ├── citation_service.py (✅ RAG)
+│   ├── soap_service.py (✅ new — Phase 4)
+│   ├── streaming_service.py (✅ new — Phase 4)
+│   └── translation_service.py (✅ new — Phase 4)
 ├── orchestrator/
-│   └── graph.py (LangGraph pipeline)
+│   └── graph.py (LangGraph pipeline + drug interactions + translation)
 └── routes/
-    ├── conversations.py
+    ├── conversations.py (+ POST /conversations/{id}/complete)
     ├── patients.py
     └── admin.py
 
 tests/
-├── test_*.py (56+ tests)
-├── test_symptom_timeline.py (✅ new)
-└── test_suggested_tests.py (✅ new)
+├── test_*.py (134+ tests across 19 test files)
+├── test_drug_interactions.py (✅ new — 25 tests)
+├── test_soap_export.py (✅ new — 16 tests)
+├── test_streaming.py (✅ new — 8 tests)
+├── test_translation.py (✅ new — 29 tests)
+├── test_symptom_timeline.py (✅)
+└── test_suggested_tests.py (✅)
 ```

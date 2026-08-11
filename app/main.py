@@ -2,11 +2,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 from app.config import settings
 from app.db import Patient, async_session, init_db
 from app.models.request import DiagnoseRequest, FollowupRequest, PatientInfo
-from app.models.response import DiagnoseResponse, Diagnosis, SuggestedTest
+from app.models.response import DiagnoseResponse, Diagnosis, SuggestedTest, DrugInteractionWarning
 from app.routes import conversations, patients
 from app.routes import admin as admin_routes
 
@@ -93,6 +94,10 @@ async def diagnose(request: DiagnoseRequest, _: str = Depends(verify_api_key)):
             red_flags=result["red_flags"],
             urgency_score=result.get("urgency_score", 1),
             urgency_rationale=result.get("urgency_rationale", ""),
+            drug_interactions=[
+                DrugInteractionWarning(**i) for i in result.get("drug_interactions", [])
+            ],
+            interaction_warnings=result.get("interaction_warnings", []),
         )
 
     # Low confidence — need follow-up, persist session
@@ -133,3 +138,32 @@ async def diagnose_followup(request: FollowupRequest, _: str = Depends(verify_ap
 
     await delete_session(session.id)
     return response
+
+
+@app.post("/diagnose/stream")
+async def diagnose_stream(request: DiagnoseRequest, _: str = Depends(verify_api_key)):
+    """Stream diagnosis results via Server-Sent Events (SSE).
+
+    Provides real-time feedback as each pipeline stage completes:
+    - event: stage_start — when a stage begins
+    - event: stage_complete — when a stage finishes with partial results
+    - event: token — individual LLM tokens during diagnosis generation
+    - event: result — final complete diagnosis response
+    - event: error — if something fails
+
+    Use this endpoint for better perceived latency in frontend applications.
+    """
+    from app.services.streaming_service import stream_diagnosis
+
+    patient_info = await _resolve_patient(request)
+    request.patient = patient_info
+
+    return StreamingResponse(
+        stream_diagnosis(request),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

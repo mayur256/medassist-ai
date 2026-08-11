@@ -6,11 +6,13 @@ from langgraph.graph import END, StateGraph
 
 from app.config import settings
 from app.models.request import DiagnoseRequest
-from app.models.response import DiagnoseResponse, Diagnosis, SuggestedTest
+from app.models.response import DiagnoseResponse, Diagnosis, SuggestedTest, DrugInteractionWarning
 from app.services.compliance_engine import apply_compliance
 from app.services.diagnosis_engine import generate_diagnoses
+from app.services.drug_interaction_service import check_and_filter_interactions
 from app.services.followup_engine import generate_followup
 from app.services.ner_service import SymptomEvent, extract_entities, format_timeline_for_prompt
+from app.services.translation_service import translate_to_english
 from app.services.treatment_engine import generate_treatments
 
 
@@ -27,14 +29,21 @@ class GraphState(TypedDict):
     red_flags: list[str]
     urgency_score: int
     urgency_rationale: str
+    drug_interactions: list[dict]
+    interaction_warnings: list[str]
     iteration: int
     confidence: float
     additional_context: str
 
 
-def ner_node(state: GraphState) -> dict:
-    """Extract entities from symptom text."""
-    text = state["request"].symptoms + " " + state.get("additional_context", "")
+async def ner_node(state: GraphState) -> dict:
+    """Translate (if needed) and extract entities from symptom text."""
+    raw_text = state["request"].symptoms + " " + state.get("additional_context", "")
+
+    # Translate non-English input to English before NER
+    translation = await translate_to_english(raw_text)
+    text = translation["translated_text"]
+
     result = extract_entities(text)
     return {
         "symptoms": result.symptoms,
@@ -101,7 +110,7 @@ async def treatment_node(state: GraphState) -> dict:
 
 
 def compliance_node(state: GraphState) -> dict:
-    """Apply compliance rules and detect red flags."""
+    """Apply compliance rules, detect red flags, and check drug interactions."""
     patient = state["request"].patient
     result = apply_compliance(
         treatments=state["treatments"],
@@ -111,11 +120,20 @@ def compliance_node(state: GraphState) -> dict:
         patient_age=patient.age,
         known_conditions=patient.known_conditions,
     )
+
+    # Drug interaction checking
+    interaction_result = check_and_filter_interactions(
+        treatments=result["treatments"],
+        known_conditions=patient.known_conditions,
+    )
+
     return {
-        "treatments": result["treatments"],
+        "treatments": interaction_result["treatments"],
         "red_flags": result["red_flags"],
         "urgency_score": result["urgency_score"],
         "urgency_rationale": result["urgency_rationale"],
+        "drug_interactions": interaction_result["interactions"],
+        "interaction_warnings": interaction_result["warnings"],
     }
 
 
@@ -171,6 +189,8 @@ def _make_initial_state(request: DiagnoseRequest, additional_context: str = "") 
         "red_flags": [],
         "urgency_score": 1,
         "urgency_rationale": "",
+        "drug_interactions": [],
+        "interaction_warnings": [],
         "iteration": 0,
         "confidence": 0.0,
         "additional_context": additional_context,
@@ -233,6 +253,10 @@ async def run_full(request: DiagnoseRequest, additional_context: str = "") -> Di
         urgency_score=result.get("urgency_score", 1),
         urgency_rationale=result.get("urgency_rationale", ""),
         confidence=result.get("confidence", 0.0),
+        drug_interactions=[
+            DrugInteractionWarning(**i) for i in result.get("drug_interactions", [])
+        ],
+        interaction_warnings=result.get("interaction_warnings", []),
         guideline_sources=guideline_sources,
         formatted_citations=formatted_citations,
     )

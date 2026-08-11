@@ -29,6 +29,16 @@ class SourceCitation(BaseModel):
     version: str | None = None
 
 
+class DrugInteractionWarning(BaseModel):
+    """A detected drug-drug interaction warning."""
+
+    drug_in_treatment: str
+    drug_in_patient_meds: str
+    severity: str  # minor, moderate, severe
+    description: str
+    recommendation: str
+
+
 class DiagnoseResponse(BaseModel):
     session_id: str | None = None
     status: str = "complete"  # "awaiting_followup" or "complete"
@@ -40,9 +50,13 @@ class DiagnoseResponse(BaseModel):
     suggested_tests: list[SuggestedTest] = []
     treatment_options: list[str] = []
     red_flags: list[str] = []
-    
+
+    # Drug interaction checking
+    drug_interactions: list[DrugInteractionWarning] = []
+    interaction_warnings: list[str] = []
+
     # Citation tracking
     guideline_sources: list[SourceCitation] = []  # Clinical guidelines used
     formatted_citations: list[str] = []  # APA-formatted citations for academic use
-    
+
     disclaimer: str = DISCLAIMER

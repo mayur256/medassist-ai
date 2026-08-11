@@ -89,7 +89,13 @@ async def process_chat_message(patient: Patient, messages: list[Message], conver
     # Extract entities from latest patient message
     latest_patient_msg = next((m for m in reversed(messages) if m.role == "patient"), None)
     raw_text = latest_patient_msg.content if latest_patient_msg else ""
-    ner_result = extract_entities(raw_text)
+
+    # Translate non-English input before NER
+    from app.services.translation_service import translate_to_english
+    translation = await translate_to_english(raw_text)
+    translated_text = translation["translated_text"]
+
+    ner_result = extract_entities(translated_text)
 
     # Build timeline block from all patient messages for richer temporal context
     all_patient_text = " ".join(m.content for m in messages if m.role == "patient")
@@ -176,17 +182,26 @@ async def process_chat_message(patient: Patient, messages: list[Message], conver
         known_conditions=patient.known_conditions,
     )
 
+    # Drug interaction checking
+    from app.services.drug_interaction_service import check_and_filter_interactions
+    interaction_result = check_and_filter_interactions(
+        treatments=compliance["treatments"],
+        known_conditions=patient.known_conditions or [],
+    )
+
     return {
         "content": result.get("content", ""),
         "metadata": {
             "action": "diagnose",
             "confidence": 1.0,
             "diagnoses": result.get("diagnoses", []),
-            "treatments": compliance["treatments"],
+            "treatments": interaction_result["treatments"],
             "suggested_tests": result.get("suggested_tests", []),
             "red_flags": compliance["red_flags"],
             "urgency_score": compliance["urgency_score"],
             "urgency_rationale": compliance["urgency_rationale"],
+            "drug_interactions": interaction_result["interactions"],
+            "interaction_warnings": interaction_result["warnings"],
             "follow_up_questions": [],
         },
     }

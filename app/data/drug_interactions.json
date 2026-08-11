@@ -1,0 +1,370 @@
+{
+  "condition_medications": {
+    "diabetes": ["metformin", "glipizide", "glyburide", "insulin", "sitagliptin", "empagliflozin", "pioglitazone"],
+    "type 2 diabetes": ["metformin", "glipizide", "glyburide", "insulin", "sitagliptin", "empagliflozin", "pioglitazone"],
+    "hypertension": ["amlodipine", "lisinopril", "losartan", "atenolol", "hydrochlorothiazide", "ramipril", "valsartan", "metoprolol"],
+    "heart failure": ["carvedilol", "metoprolol", "lisinopril", "enalapril", "spironolactone", "furosemide", "digoxin", "sacubitril"],
+    "asthma": ["salbutamol", "fluticasone", "montelukast", "budesonide", "formoterol", "ipratropium", "theophylline"],
+    "copd": ["tiotropium", "salbutamol", "fluticasone", "formoterol", "budesonide", "ipratropium", "theophylline", "roflumilast"],
+    "depression": ["sertraline", "fluoxetine", "escitalopram", "venlafaxine", "duloxetine", "amitriptyline", "mirtazapine"],
+    "anxiety": ["sertraline", "escitalopram", "buspirone", "venlafaxine", "duloxetine", "alprazolam", "diazepam"],
+    "epilepsy": ["valproate", "carbamazepine", "levetiracetam", "lamotrigine", "phenytoin", "topiramate"],
+    "hypothyroidism": ["levothyroxine"],
+    "atrial fibrillation": ["warfarin", "apixaban", "rivaroxaban", "dabigatran", "digoxin", "amiodarone", "metoprolol"],
+    "coronary artery disease": ["aspirin", "clopidogrel", "atorvastatin", "metoprolol", "lisinopril", "nitroglycerin"],
+    "dvt": ["warfarin", "apixaban", "rivaroxaban", "enoxaparin", "heparin"],
+    "rheumatoid arthritis": ["methotrexate", "hydroxychloroquine", "sulfasalazine", "leflunomide", "prednisone"],
+    "osteoarthritis": ["ibuprofen", "naproxen", "acetaminophen", "celecoxib", "diclofenac"],
+    "gout": ["allopurinol", "colchicine", "febuxostat", "indomethacin"],
+    "migraine": ["sumatriptan", "topiramate", "propranolol", "amitriptyline", "valproate"],
+    "gastroesophageal reflux": ["omeprazole", "pantoprazole", "ranitidine", "esomeprazole", "lansoprazole"],
+    "peptic ulcer": ["omeprazole", "pantoprazole", "ranitidine", "sucralfate", "misoprostol"],
+    "chronic kidney disease": ["lisinopril", "losartan", "furosemide", "epoetin", "calcium carbonate", "sevelamer"],
+    "hiv": ["tenofovir", "emtricitabine", "efavirenz", "dolutegravir", "ritonavir", "atazanavir"]
+  },
+  "interactions": [
+    {
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "severity": "severe",
+      "description": "Increased risk of bleeding due to additive anticoagulant and antiplatelet effects",
+      "recommendation": "Avoid combination unless specifically indicated; monitor INR closely if co-prescribed"
+    },
+    {
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "severity": "severe",
+      "description": "NSAIDs increase bleeding risk and may displace warfarin from protein binding",
+      "recommendation": "Avoid NSAIDs with warfarin; use acetaminophen for pain if needed"
+    },
+    {
+      "drug_a": "warfarin",
+      "drug_b": "naproxen",
+      "severity": "severe",
+      "description": "NSAIDs increase bleeding risk and may displace warfarin from protein binding",
+      "recommendation": "Avoid NSAIDs with warfarin; use acetaminophen for pain if needed"
+    },
+    {
+      "drug_a": "warfarin",
+      "drug_b": "metronidazole",
+      "severity": "severe",
+      "description": "Metronidazole inhibits warfarin metabolism, significantly increasing INR and bleeding risk",
+      "recommendation": "Reduce warfarin dose by 25-50% or choose alternative antibiotic"
+    },
+    {
+      "drug_a": "warfarin",
+      "drug_b": "amiodarone",
+      "severity": "severe",
+      "description": "Amiodarone inhibits CYP2C9, markedly increasing warfarin effect",
+      "recommendation": "Reduce warfarin dose by 30-50% and monitor INR frequently"
+    },
+    {
+      "drug_a": "metformin",
+      "drug_b": "contrast dye",
+      "severity": "severe",
+      "description": "Risk of lactic acidosis when metformin is continued during contrast procedures",
+      "recommendation": "Withhold metformin 48 hours before and after contrast administration"
+    },
+    {
+      "drug_a": "metformin",
+      "drug_b": "alcohol",
+      "severity": "moderate",
+      "description": "Alcohol potentiates metformin's effect on lactate metabolism, increasing lactic acidosis risk",
+      "recommendation": "Limit alcohol intake; monitor for signs of lactic acidosis"
+    },
+    {
+      "drug_a": "lisinopril",
+      "drug_b": "spironolactone",
+      "severity": "moderate",
+      "description": "Combined ACE inhibitor and potassium-sparing diuretic increases hyperkalemia risk",
+      "recommendation": "Monitor serum potassium levels regularly; avoid potassium supplements"
+    },
+    {
+      "drug_a": "lisinopril",
+      "drug_b": "potassium",
+      "severity": "moderate",
+      "description": "ACE inhibitors reduce potassium excretion; supplementation may cause dangerous hyperkalemia",
+      "recommendation": "Avoid potassium supplements; monitor serum potassium"
+    },
+    {
+      "drug_a": "lisinopril",
+      "drug_b": "ibuprofen",
+      "severity": "moderate",
+      "description": "NSAIDs reduce antihypertensive efficacy and increase nephrotoxicity risk",
+      "recommendation": "Prefer acetaminophen for pain; monitor blood pressure and renal function"
+    },
+    {
+      "drug_a": "metoprolol",
+      "drug_b": "verapamil",
+      "severity": "severe",
+      "description": "Combined beta-blocker and calcium channel blocker can cause severe bradycardia and heart block",
+      "recommendation": "Avoid combination; use alternative antihypertensive"
+    },
+    {
+      "drug_a": "metoprolol",
+      "drug_b": "digoxin",
+      "severity": "moderate",
+      "description": "Additive bradycardic effect may cause symptomatic bradycardia",
+      "recommendation": "Monitor heart rate closely; consider dose reduction"
+    },
+    {
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "severity": "severe",
+      "description": "Amiodarone increases digoxin levels by 70-100%, risking toxicity",
+      "recommendation": "Reduce digoxin dose by 50% when adding amiodarone; monitor levels"
+    },
+    {
+      "drug_a": "digoxin",
+      "drug_b": "furosemide",
+      "severity": "moderate",
+      "description": "Loop diuretic-induced hypokalemia increases sensitivity to digoxin toxicity",
+      "recommendation": "Monitor potassium levels; supplement potassium as needed"
+    },
+    {
+      "drug_a": "fluoxetine",
+      "drug_b": "tramadol",
+      "severity": "severe",
+      "description": "Increased risk of serotonin syndrome and seizures",
+      "recommendation": "Avoid combination; use alternative analgesic"
+    },
+    {
+      "drug_a": "fluoxetine",
+      "drug_b": "sumatriptan",
+      "severity": "moderate",
+      "description": "Potential risk of serotonin syndrome with combined serotonergic agents",
+      "recommendation": "Use with caution; monitor for serotonin syndrome symptoms"
+    },
+    {
+      "drug_a": "sertraline",
+      "drug_b": "tramadol",
+      "severity": "severe",
+      "description": "Increased risk of serotonin syndrome and seizures",
+      "recommendation": "Avoid combination; use alternative analgesic"
+    },
+    {
+      "drug_a": "sertraline",
+      "drug_b": "sumatriptan",
+      "severity": "moderate",
+      "description": "Potential risk of serotonin syndrome with combined serotonergic agents",
+      "recommendation": "Use with caution; monitor for serotonin syndrome symptoms"
+    },
+    {
+      "drug_a": "sertraline",
+      "drug_b": "warfarin",
+      "severity": "moderate",
+      "description": "SSRIs may increase bleeding risk and affect warfarin metabolism",
+      "recommendation": "Monitor INR closely when starting or stopping SSRI therapy"
+    },
+    {
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "severity": "moderate",
+      "description": "Omeprazole inhibits CYP2C19, reducing clopidogrel's antiplatelet effect",
+      "recommendation": "Use pantoprazole or ranitidine as alternative acid suppression"
+    },
+    {
+      "drug_a": "clopidogrel",
+      "drug_b": "aspirin",
+      "severity": "moderate",
+      "description": "Dual antiplatelet therapy increases bleeding risk",
+      "recommendation": "Appropriate after cardiac stent; monitor for bleeding signs"
+    },
+    {
+      "drug_a": "atorvastatin",
+      "drug_b": "erythromycin",
+      "severity": "severe",
+      "description": "CYP3A4 inhibition increases statin levels, risking rhabdomyolysis",
+      "recommendation": "Avoid combination or use alternative antibiotic; monitor for muscle pain"
+    },
+    {
+      "drug_a": "atorvastatin",
+      "drug_b": "clarithromycin",
+      "severity": "severe",
+      "description": "CYP3A4 inhibition increases statin levels, risking rhabdomyolysis",
+      "recommendation": "Avoid combination or temporarily suspend statin during antibiotic course"
+    },
+    {
+      "drug_a": "atorvastatin",
+      "drug_b": "gemfibrozil",
+      "severity": "severe",
+      "description": "Markedly increased risk of myopathy and rhabdomyolysis",
+      "recommendation": "Avoid combination; use fenofibrate if fibrate needed with statin"
+    },
+    {
+      "drug_a": "amlodipine",
+      "drug_b": "simvastatin",
+      "severity": "moderate",
+      "description": "Amlodipine inhibits CYP3A4, increasing simvastatin levels and myopathy risk",
+      "recommendation": "Limit simvastatin to 20mg daily with amlodipine or switch to atorvastatin"
+    },
+    {
+      "drug_a": "carbamazepine",
+      "drug_b": "oral contraceptives",
+      "severity": "severe",
+      "description": "Carbamazepine induces metabolism of contraceptive hormones, reducing efficacy",
+      "recommendation": "Use alternative contraception or higher-dose formulation"
+    },
+    {
+      "drug_a": "carbamazepine",
+      "drug_b": "valproate",
+      "severity": "moderate",
+      "description": "Carbamazepine lowers valproate levels; valproate may increase carbamazepine epoxide toxicity",
+      "recommendation": "Monitor levels of both drugs; adjust doses accordingly"
+    },
+    {
+      "drug_a": "phenytoin",
+      "drug_b": "warfarin",
+      "severity": "moderate",
+      "description": "Complex interaction: initially increases warfarin effect, then may decrease it",
+      "recommendation": "Monitor INR closely during phenytoin initiation and dose changes"
+    },
+    {
+      "drug_a": "theophylline",
+      "drug_b": "erythromycin",
+      "severity": "severe",
+      "description": "Erythromycin inhibits theophylline metabolism, risking toxicity (seizures, arrhythmias)",
+      "recommendation": "Monitor theophylline levels; reduce dose or use alternative antibiotic"
+    },
+    {
+      "drug_a": "theophylline",
+      "drug_b": "ciprofloxacin",
+      "severity": "severe",
+      "description": "Ciprofloxacin inhibits theophylline metabolism, risking toxicity",
+      "recommendation": "Reduce theophylline dose by 30-50% or use alternative antibiotic"
+    },
+    {
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "severity": "severe",
+      "description": "Allopurinol inhibits metabolism of azathioprine, causing severe myelosuppression",
+      "recommendation": "Reduce azathioprine dose by 75% or avoid combination entirely"
+    },
+    {
+      "drug_a": "methotrexate",
+      "drug_b": "trimethoprim",
+      "severity": "severe",
+      "description": "Both drugs inhibit folate metabolism; combination causes severe pancytopenia",
+      "recommendation": "Avoid combination; use alternative antibiotic"
+    },
+    {
+      "drug_a": "methotrexate",
+      "drug_b": "ibuprofen",
+      "severity": "severe",
+      "description": "NSAIDs reduce methotrexate renal clearance, increasing toxicity risk",
+      "recommendation": "Avoid NSAIDs with high-dose methotrexate; use acetaminophen for pain"
+    },
+    {
+      "drug_a": "levothyroxine",
+      "drug_b": "calcium carbonate",
+      "severity": "moderate",
+      "description": "Calcium reduces levothyroxine absorption",
+      "recommendation": "Separate administration by at least 4 hours"
+    },
+    {
+      "drug_a": "levothyroxine",
+      "drug_b": "iron",
+      "severity": "moderate",
+      "description": "Iron reduces levothyroxine absorption",
+      "recommendation": "Separate administration by at least 4 hours"
+    },
+    {
+      "drug_a": "levothyroxine",
+      "drug_b": "omeprazole",
+      "severity": "minor",
+      "description": "PPIs may reduce levothyroxine absorption by increasing gastric pH",
+      "recommendation": "Monitor TSH levels; may need levothyroxine dose adjustment"
+    },
+    {
+      "drug_a": "ritonavir",
+      "drug_b": "simvastatin",
+      "severity": "severe",
+      "description": "Protease inhibitors dramatically increase statin levels via CYP3A4 inhibition",
+      "recommendation": "Contraindicated; use pravastatin or rosuvastatin instead"
+    },
+    {
+      "drug_a": "ritonavir",
+      "drug_b": "atorvastatin",
+      "severity": "severe",
+      "description": "Protease inhibitors increase statin levels, risking rhabdomyolysis",
+      "recommendation": "Use lowest statin dose or switch to pravastatin/rosuvastatin"
+    },
+    {
+      "drug_a": "insulin",
+      "drug_b": "beta-blockers",
+      "severity": "moderate",
+      "description": "Beta-blockers mask hypoglycemia symptoms and may prolong hypoglycemic episodes",
+      "recommendation": "Use cardioselective beta-blockers; educate patient on hypoglycemia recognition"
+    },
+    {
+      "drug_a": "insulin",
+      "drug_b": "corticosteroids",
+      "severity": "moderate",
+      "description": "Corticosteroids cause hyperglycemia, reducing insulin efficacy",
+      "recommendation": "Monitor blood glucose frequently; increase insulin dose as needed"
+    },
+    {
+      "drug_a": "spironolactone",
+      "drug_b": "losartan",
+      "severity": "moderate",
+      "description": "Combined potassium-sparing diuretic and ARB increases hyperkalemia risk",
+      "recommendation": "Monitor potassium closely; avoid potassium supplements"
+    },
+    {
+      "drug_a": "amiodarone",
+      "drug_b": "simvastatin",
+      "severity": "severe",
+      "description": "Amiodarone inhibits CYP3A4, increasing simvastatin levels and myopathy risk",
+      "recommendation": "Limit simvastatin to 20mg daily; consider atorvastatin or pravastatin"
+    },
+    {
+      "drug_a": "colchicine",
+      "drug_b": "clarithromycin",
+      "severity": "severe",
+      "description": "CYP3A4 and P-gp inhibition increases colchicine to toxic levels",
+      "recommendation": "Contraindicated in renal/hepatic impairment; reduce colchicine dose significantly"
+    },
+    {
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "severity": "severe",
+      "description": "Combined vasodilation can cause life-threatening hypotension",
+      "recommendation": "Absolutely contraindicated; wait at least 24-48 hours between use"
+    },
+    {
+      "drug_a": "venlafaxine",
+      "drug_b": "tramadol",
+      "severity": "severe",
+      "description": "Increased risk of serotonin syndrome and seizures",
+      "recommendation": "Avoid combination; use alternative analgesic"
+    },
+    {
+      "drug_a": "duloxetine",
+      "drug_b": "tramadol",
+      "severity": "severe",
+      "description": "Increased risk of serotonin syndrome",
+      "recommendation": "Avoid combination; use alternative analgesic"
+    },
+    {
+      "drug_a": "ciprofloxacin",
+      "drug_b": "tizanidine",
+      "severity": "severe",
+      "description": "Ciprofloxacin increases tizanidine levels 10-fold via CYP1A2 inhibition",
+      "recommendation": "Contraindicated; use alternative antibiotic or muscle relaxant"
+    },
+    {
+      "drug_a": "furosemide",
+      "drug_b": "gentamicin",
+      "severity": "severe",
+      "description": "Additive ototoxicity and nephrotoxicity",
+      "recommendation": "Monitor renal function and hearing; use lowest effective doses"
+    },
+    {
+      "drug_a": "hydrochlorothiazide",
+      "drug_b": "lithium",
+      "severity": "severe",
+      "description": "Thiazides reduce lithium clearance, causing toxicity",
+      "recommendation": "Monitor lithium levels closely; consider dose reduction"
+    }
+  ]
+}

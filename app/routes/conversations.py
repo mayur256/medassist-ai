@@ -19,6 +19,14 @@ class ConversationResponse(BaseModel):
     created_at: str
 
 
+class SOAPNoteResponse(BaseModel):
+    conversation_id: str
+    patient_id: str
+    soap_note: dict
+    plain_text: str
+    generated_at: str
+
+
 class MessageCreate(BaseModel):
     content: str
 
@@ -114,6 +122,61 @@ async def send_message(conversation_id: str, data: MessageCreate, db: AsyncSessi
     await db.refresh(assistant_msg)
 
     return [_msg_resp(patient_msg), _msg_resp(assistant_msg)]
+
+
+@router.post("/conversations/{conversation_id}/complete", response_model=SOAPNoteResponse)
+async def complete_conversation(conversation_id: str, db: AsyncSession = Depends(get_db)):
+    """Complete a conversation and generate a SOAP note summary.
+
+    Generates a structured clinical summary in SOAP format from the full
+    conversation, marks the conversation as completed, and returns the note.
+    """
+    conv = await db.execute(
+        select(Conversation).options(selectinload(Conversation.patient)).where(Conversation.id == conversation_id)
+    )
+    conv = conv.scalar_one_or_none()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    if conv.status == "completed":
+        raise HTTPException(status_code=400, detail="Conversation is already completed")
+
+    # Get all messages
+    result = await db.execute(
+        select(Message).where(Message.conversation_id == conversation_id).order_by(Message.created_at)
+    )
+    messages = result.scalars().all()
+
+    if not messages:
+        raise HTTPException(status_code=400, detail="Cannot generate SOAP note for empty conversation")
+
+    # Generate SOAP note
+    from app.services.soap_service import generate_soap_note
+    soap_result = await generate_soap_note(
+        patient=conv.patient,
+        messages=messages,
+        conversation_id=conversation_id,
+    )
+
+    # Mark conversation as completed and store summary
+    conv.status = "completed"
+
+    # Save SOAP note as a system message for record-keeping
+    soap_msg = Message(
+        conversation_id=conversation_id,
+        role="system",
+        content=soap_result["plain_text"],
+        metadata_={"type": "soap_note", "soap_note": soap_result["soap_note"]},
+    )
+    db.add(soap_msg)
+    await db.commit()
+
+    return SOAPNoteResponse(
+        conversation_id=conversation_id,
+        patient_id=conv.patient_id,
+        soap_note=soap_result["soap_note"],
+        plain_text=soap_result["plain_text"],
+        generated_at=soap_result["generated_at"],
+    )
 
 
 def _conv_resp(c: Conversation) -> ConversationResponse:
