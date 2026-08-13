@@ -1,5 +1,58 @@
 ---
 
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker & Docker Compose (for PostgreSQL)
+- Python 3.12+ with virtualenv
+- Node.js 18+ with npm
+
+### 1. Start the Database
+
+```bash
+cd /home/mayur.upadhyay/Desktop/POC/medassist-ai
+docker compose up -d
+```
+
+### 2. Start the Backend (port 9000)
+
+```bash
+cd /home/mayur.upadhyay/Desktop/POC/medassist-ai
+source .venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
+```
+
+Verify: `curl http://localhost:9000/health` → `{"status": "ok"}`
+
+### 3. Start the Frontend (port 3000)
+
+```bash
+cd /home/mayur.upadhyay/Desktop/POC/medassist-ai/frontend
+npm install   # first time only
+npm run dev
+```
+
+Open http://localhost:3000 in your browser.
+
+### Environment Variables
+
+The backend reads from `.env` in the project root:
+
+```bash
+API_KEY=your-api-key
+GROQ_API_KEY=your-groq-key
+DATABASE_URL=postgresql+asyncpg://medassist:medassist123@localhost:5437/medassist
+```
+
+The frontend reads from `frontend/.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:9000
+NEXT_PUBLIC_API_KEY=your-api-key
+```
+
+---
+
 ## 📚 Documentation Guide
 
 **New to the project?** Start here:
